@@ -1,0 +1,2767 @@
+<!DOCTYPE html>
+<html lang="fi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palmu Talous Pro Custom</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                        borderbg: '#334155',
+                    }
+                }
+            }
+        }
+    </script>
+ 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Firebase SDK (App, Auth, Firestore) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .sidebar-scroll::-webkit-scrollbar, .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .sidebar-scroll::-webkit-scrollbar-track, .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar-scroll::-webkit-scrollbar-thumb, .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-slate-900 text-slate-100">
+
+    <!-- KIRJAUTUMISMODAALI (Pakollinen ennen käyttöä) -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-5 shadow-2xl">
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-2xl shadow-lg mx-auto mb-2">T</div>
+                <h3 class="text-xl font-bold text-white">TalousSeuranta Kirjautuminen</h3>
+                <p class="text-xs text-slate-400">Jokaisen käyttäjän tiedot ovat turvassa omassa suojatussa tietokannassaan.</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Google kirjautuminen -->
+                <button onclick="loginWithGoogle()" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.17 21.36 7.23 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.6H1.19C.43 8.13 0 9.87 0 11.7s.43 3.57 1.19 5.1l4.08-2.56z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.64 1.19 6.6l4.08 3.15c.95-2.85 3.6-4.95 6.73-4.95z"/></svg>
+                    Jatka Google-tilillä
+                </button>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-700"></div>
+                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase font-semibold">Tai sähköposti / puhelin</span>
+                    <div class="flex-grow border-t border-slate-700"></div>
+                </div>
+
+                <!-- Sähköposti & Salasana -->
+                <div class="space-y-2 text-xs">
+                    <input type="email" id="auth-email" placeholder="Sähköpostiosoite" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    <input type="password" id="auth-password" placeholder="Salasana" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="loginWithEmail()" class="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold">Kirjaudu</button>
+                        <button onclick="registerWithEmail()" class="py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold">Rekisteröidy</button>
+                    </div>
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-slate-700"></div>
+                    <span class="flex-shrink mx-4 text-slate-500 text-[10px] uppercase font-semibold">Puhelinnumero</span>
+                    <div class="flex-grow border-t border-slate-700"></div>
+                </div>
+
+                <!-- Puhelinnumero -->
+                <div class="space-y-2 text-xs">
+                    <input type="text" id="auth-phone" placeholder="+358 40 1234567" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    <button onclick="loginWithPhone()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold">Jatka puhelinnumerolla</button>
+                    <div id="recaptcha-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIVUPALKKI (17 VÄLILEHTEÄ) -->
+    <aside class="w-72 bg-slate-950 text-slate-300 flex flex-col flex-shrink-0 border-r border-slate-800 shadow-2xl z-20">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20">T</div>
+                <div>
+                    <h1 class="font-bold text-white text-base leading-tight">TalousSeuranta</h1>
+                    <span class="text-[11px] text-blue-400 font-medium">Yritysversio Custom</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto p-3 space-y-1 sidebar-scroll" id="sidebar-nav">
+            <button onclick="switchTab('etusivu')" id="nav-etusivu" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 text-white shadow-md shadow-blue-600/20"><i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>1. Etusivu & Tulos</span></button>
+            <button onclick="switchTab('tapahtumat')" id="nav-tapahtumat" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="receipt" class="w-4 h-4 text-blue-400"></i><span>2. Tulo- ja menokirjaukset</span></button>
+            <button onclick="switchTab('budjetti')" id="nav-budjetti" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="pie-chart" class="w-4 h-4 text-purple-400"></i><span>3. Budjetointi & Tavoitteet</span></button>
+            <button onclick="switchTab('kassavirta')" id="nav-kassavirta" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="line-chart" class="w-4 h-4 text-emerald-400"></i><span>4. Kassavirtaennuste</span></button>
+            <button onclick="switchTab('tuotteet')" id="nav-tuotteet" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="package" class="w-4 h-4 text-amber-400"></i><span>5. Tuotteet & Palvelut</span></button>
+            <button onclick="switchTab('laskutus')" id="nav-laskutus" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="file-text" class="w-4 h-4 text-sky-400"></i><span>6. Laskutus & Saatavat</span></button>
+            <button onclick="switchTab('ostolaskut')" id="nav-ostolaskut" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="credit-card" class="w-4 h-4 text-rose-400"></i><span>7. Ostolaskut & Velat</span></button>
+            <button onclick="switchTab('veroasiat')" id="nav-veroasiat" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="landmark" class="w-4 h-4 text-indigo-400"></i><span>8. Verotus & ALV</span></button>
+            <button onclick="switchTab('palkat')" id="nav-palkat" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="users" class="w-4 h-4 text-teal-400"></i><span>9. Palkat & Henkilöstö</span></button>
+            <button onclick="switchTab('investoinnit')" id="nav-investoinnit" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="trending-up" class="w-4 h-4 text-cyan-400"></i><span>10. Investoinnit & Rahoitus</span></button>
+            <button onclick="switchTab('raportit')" id="nav-raportit" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="bar-chart-3" class="w-4 h-4 text-orange-400"></i><span>11. Raportit & Tase</span></button>
+            <button onclick="switchTab('asiakkaat')" id="nav-asiakkaat" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="building-2" class="w-4 h-4 text-pink-400"></i><span>12. Asiakkaat & Sopimukset</span></button>
+            <button onclick="switchTab('crm')" id="nav-crm" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="kanban" class="w-4 h-4 text-violet-400"></i><span>13. Myyntiputki & CRM</span></button>
+            <button onclick="switchTab('dokumentit')" id="nav-dokumentit" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="folder-open" class="w-4 h-4 text-yellow-400"></i><span>14. Dokumentit & Muistiinpanot</span></button>
+            <button onclick="switchTab('asetukset')" id="nav-asetukset" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="settings" class="w-4 h-4 text-slate-400"></i><span>15. Asetukset & Kategoriat</span></button>
+            <button onclick="switchTab('tyot')" id="nav-tyot" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i><span>16. Tulevat työt</span></button>
+            <button onclick="switchTab('kalenteri')" id="nav-kalenteri" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white"><i data-lucide="calendar-days" class="w-4 h-4 text-cyan-400"></i><span>17. Kalenteri & Tapahtumat</span></button>
+        </nav>
+
+        <div class="p-3 border-t border-slate-800 bg-slate-900/50 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Tila:</span>
+            <div class="flex items-center gap-2">
+                <span id="user-display-email" class="text-[10px] text-blue-400 truncate max-w-[100px]">Ei kirjauduttu</span>
+                <button onclick="logout()" class="text-rose-400 hover:underline text-[10px]">Ulos</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- PÄÄSISÄLTÖ -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-900">
+        <header class="bg-slate-950 border-b border-slate-800 h-16 flex items-center justify-between px-6 flex-shrink-0 z-10">
+            <h2 id="current-tab-title" class="text-lg font-bold text-white">1. Etusivu & Tulos</h2>
+            <div class="flex items-center space-x-4">
+                <!-- Vuosivalitsin yläpalkissa -->
+                <div class="flex items-center space-x-2 bg-slate-900 border border-slate-700 px-3 py-1 rounded-xl">
+                    <span class="text-xs text-slate-400 font-medium">Vuosi:</span>
+                    <select id="global-year-select" onchange="changeGlobalYear(this.value)" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="kaikki">Kaikki vuodet</option>
+                    </select>
+                </div>
+                <button onclick="toggleEditMode()" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+                    <i id="lock-icon" data-lucide="lock" class="w-4 h-4 text-amber-400"></i>
+                    <span id="lock-btn-text">Avaa muokkaustila</span>
+                </button>
+                <button onclick="openAddModal('tx-modal')" class="edit-only hidden flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">
+                    <i data-lucide="plus" class="w-4 h-4"></i><span>Uusi kirjaus</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 custom-scroll space-y-6">
+            <!-- 1. ETUSIVU -->
+            <section id="tab-etusivu" class="tab-content space-y-6">
+                <!-- KPI Kortit -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 mb-2"><span class="text-xs font-semibold uppercase">Kassavarat (<span class="year-label">2026</span>)</span><div class="p-2 rounded-xl bg-blue-500/10 text-blue-400"><i data-lucide="wallet" class="w-5 h-5"></i></div></div>
+                        <h3 class="text-2xl font-black text-white" id="kpi-kassa">0,00 €</h3>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 mt-2">
+                            <span>Alkupääoma (v. 2026): <strong id="initial-balance-display" class="text-slate-200">0 €</strong></span>
+                            <button onclick="editInitialBalance()" class="edit-only hidden text-blue-400 hover:underline">Muokkaa</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 mb-2"><span class="text-xs font-semibold uppercase">Tulot yhteensä (<span class="year-label">2026</span>)</span><div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400"><i data-lucide="arrow-up-right" class="w-5 h-5"></i></div></div>
+                        <h3 class="text-2xl font-black text-emerald-400" id="kpi-tulot">0,00 €</h3>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 mb-2"><span class="text-xs font-semibold uppercase">Menot yhteensä (<span class="year-label">2026</span>)</span><div class="p-2 rounded-xl bg-rose-500/10 text-rose-400"><i data-lucide="arrow-down-right" class="w-5 h-5"></i></div></div>
+                        <h3 class="text-2xl font-black text-rose-400" id="kpi-menot">0,00 €</h3>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 shadow-lg">
+                        <div class="flex items-center justify-between text-slate-400 mb-2"><span class="text-xs font-semibold uppercase">Nettotulos (<span class="year-label">2026</span>)</span><div class="p-2 rounded-xl bg-purple-500/10 text-purple-400"><i data-lucide="calculator" class="w-5 h-5"></i></div></div>
+                        <h3 class="text-2xl font-black text-white" id="kpi-tulos">0,00 €</h3>
+                    </div>
+                </div>
+
+                <!-- Yrityksen Ikäkello -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-blue-400"></i> Yrityksen Ikä (alkaen 12.8.2026 klo 09:58)</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
+                            <span class="text-2xl font-black text-blue-400" id="age-years">0</span>
+                            <span class="block text-[11px] text-slate-400 uppercase mt-1">Vuotta</span>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
+                            <span class="text-2xl font-black text-blue-400" id="age-months">0</span>
+                            <span class="block text-[11px] text-slate-400 uppercase mt-1">Kuukautta</span>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
+                            <span class="text-2xl font-black text-blue-400" id="age-days">0</span>
+                            <span class="block text-[11px] text-slate-400 uppercase mt-1">Päivää</span>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
+                            <span class="text-2xl font-black text-emerald-400" id="age-hours">0</span>
+                            <span class="block text-[11px] text-slate-400 uppercase mt-1">Tuntia</span>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
+                            <span class="text-2xl font-black text-amber-400" id="age-minutes">0</span>
+                            <span class="block text-[11px] text-slate-400 uppercase mt-1">Minuuttia</span>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3">
+                            <span class="text-2xl font-black text-rose-400" id="age-seconds">0</span>
+                            <span class="block text-[11px] text-slate-400 uppercase mt-1">Sekuntia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIAGRAMMIT JA TOP-LISTAT -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-3">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i> Suurin Tuloerä / Kategoria (<span class="year-label">2026</span>)</h3>
+                        <div id="top-income-category" class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between">
+                            <span class="text-slate-400 text-xs">Ei tarpeeksi dataa</span>
+                            <span class="text-emerald-400 font-bold text-sm">0,00 €</span>
+                        </div>
+                        <div class="h-48 relative">
+                            <canvas id="incomeCategoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-3">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="award" class="w-4 h-4 text-emerald-400"></i> Top 5 Tulorajat / Tulot (<span class="year-label">2026</span>)</h3>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-3 max-h-48 overflow-y-auto custom-scroll">
+                            <ul id="top-customers-list" class="space-y-2 text-xs text-slate-300">
+                                <li class="text-slate-500 text-center py-4">Ei tulokirjauksia</li>
+                            </ul>
+                        </div>
+                        <div class="h-32 relative">
+                            <canvas id="topCustomerChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETUSIVUN ALAPUOLELLA: ARVIOINNIT -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="star" class="w-4 h-4 text-amber-400"></i> Yrityksen arvioinnit (Arvo 0–10)</h3>
+                        <button onclick="openAddModal('review-modal')" class="edit-only hidden bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää arviointi</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Pvm</th>
+                                    <th>Arvioinnin nimi</th>
+                                    <th class="text-center">Huolellisuus (0-10)</th>
+                                    <th class="text-center">Hinta (0-10)</th>
+                                    <th class="text-center">Tyytyväisyys (0-10)</th>
+                                    <th>Sanallinen palaute (vapaaehtoinen)</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reviews-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. TAPAHTUMAT -->
+            <section id="tab-tapahtumat" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white">Kaikki Kirjaukset (<span class="year-label">2026</span>)</h3>
+                        <button onclick="openAddModal('tx-modal')" class="edit-only hidden bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tapahtuma</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Pvm</th><th>Kuvaus</th><th>Kategoria</th><th>Tyyppi</th><th class="text-right">Summa (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="tx-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. BUDJETointi -->
+            <section id="tab-budjetti" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-5">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">3. Budjetointi, Tavoitteet & Tulorajat (<span class="year-label">2026</span>)</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Aseta vuodelle kuukausitavoite (tuloraja) ja budjetoidut menot.</p>
+                        </div>
+                        <button onclick="openAddModal('budget-modal')" class="edit-only hidden bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Aseta / Muokkaa Budjettia (<span class="year-label">2026</span>)</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 space-y-2">
+                            <span class="text-xs text-slate-400 uppercase font-semibold">Tavoitetulot / Tuloraja</span>
+                            <h4 class="text-2xl font-black text-emerald-400" id="budget-target-income">0,00 €</h4>
+                            <p class="text-[11px] text-slate-400">Toteutuneet tulot: <strong id="budget-actual-income" class="text-white">0,00 €</strong></p>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 space-y-2">
+                            <span class="text-xs text-slate-400 uppercase font-semibold">Maksimimenot (Budjetti)</span>
+                            <h4 class="text-2xl font-black text-rose-400" id="budget-max-expense">0,00 €</h4>
+                            <p class="text-[11px] text-slate-400">Toteutuneet menot: <strong id="budget-actual-expense" class="text-white">0,00 €</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 space-y-3">
+                        <h4 class="text-sm font-bold text-white">Budjetin toteutuksen seuranta</h4>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <div class="flex justify-between mb-1 text-slate-300">
+                                    <span>Tulot / Tavoite</span>
+                                    <span id="income-progress-text">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                    <div id="income-progress-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1 text-slate-300">
+                                    <span>Menot / Maksimibudjetti</span>
+                                    <span id="expense-progress-text">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                    <div id="expense-progress-bar" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uusi budjetoinnin kohde -osio -->
+                    <div class="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 shadow-lg space-y-4 mt-6">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4 text-purple-400"></i> Budjetoidut kategoriat / hankkeet</h4>
+                            <button onclick="openAddModal('custom-budget-modal')" class="edit-only hidden bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää budjettikohde</button>
+                        </div>
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Kohde / Kategoria</th>
+                                    <th>Kuvaus</th>
+                                    <th class="text-right">Budjetoitu summa (€)</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="custom-budgets-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. KASSAVIRTAENNUSTE -->
+            <section id="tab-kassavirta" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-6">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="line-chart" class="w-5 h-5 text-emerald-400"></i> 4. Kassavirtaennuste & 12 Kuukauden Keskiarvot</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Keskiarvolaskenta perustuu viimeisen 12 kuukauden tai valitun vuoden tulo- ja menokirjauksiin.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 space-y-1">
+                            <span class="text-xs text-slate-400 uppercase font-semibold">Keskimääräinen tulo / kk</span>
+                            <h4 class="text-2xl font-black text-emerald-400" id="cf-avg-income">0,00 €</h4>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 space-y-1">
+                            <span class="text-xs text-slate-400 uppercase font-semibold">Keskimääräinen meno / kk</span>
+                            <h4 class="text-2xl font-black text-rose-400" id="cf-avg-expense">0,00 €</h4>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 space-y-1">
+                            <span class="text-xs text-slate-400 uppercase font-semibold">Keskimääräinen nettokassavirta / kk</span>
+                            <h4 class="text-2xl font-black text-white" id="cf-avg-net">0,00 €</h4>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 shadow-lg space-y-4">
+                        <h4 class="text-sm font-bold text-white">Seuraavien kuukausien kassavirtaennuste (perustuu 12 kk keskiarvoon)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                    <tr>
+                                        <th class="py-2">Kuukausi</th>
+                                        <th class="text-right">Ennustetut tulot (€)</th>
+                                        <th class="text-right">Ennustetut menot (€)</th>
+                                        <th class="text-right">Nettokassavirta (€)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cashflow-forecast-tbody" class="divide-y divide-slate-700/50"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. TUOTTEET -->
+            <section id="tab-tuotteet" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white">Tuotteet & Palvelut (Aakkosjärjestys)</h3>
+                        <button onclick="openAddModal('product-modal')" class="edit-only hidden bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tuote</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Nimi</th><th>SKU / Koodi</th><th class="text-right">Hinta (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="products-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 6. LASKUTUS -->
+            <section id="tab-laskutus" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white">Myyntilaskut & Saatavat</h3>
+                        <button onclick="openAddModal('invoice-modal')" class="edit-only hidden bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Lasku</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Lasku #</th><th>Keneltä (Asiakas)</th><th>Syy</th><th>Alkupvm</th><th>Laskupvm</th><th class="text-right">Summa (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="invoices-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 7. OSTOLASKUT -->
+            <section id="tab-ostolaskut" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white">Ostolaskut & Velat</h3>
+                        <button onclick="openAddModal('bill-modal')" class="edit-only hidden bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Ostolasku</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Toimittaja</th><th>Eräpäivä</th><th class="text-right">Summa (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="bills-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 8. VEROTUS -->
+            <section id="tab-veroasiat" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Verotus & Tulevat Verotapahtumat</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Seuraa ALV-ilmoituksia, ennakkoveroja ja muita viranomaismääräaikoja.</p>
+                        </div>
+                        <button onclick="openAddModal('tax-modal')" class="edit-only hidden bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Verotapahtuma</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Verotyyppi</th><th>Selite</th><th>Eräpäivä</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="taxes-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 9. PALKAT -->
+            <section id="tab-palkat" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Palkat & Henkilöstö (Aakkosjärjestys)</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Kokonaismaksettu palkka haetaan automaattisesti menokirjauksista työntekijän nimen tai etunimen perusteella.</p>
+                        </div>
+                        <button onclick="openAddModal('employee-modal')" class="edit-only hidden bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Työntekijä</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Nimi</th><th>Rooli</th><th class="text-right">Palkat yhteensä (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="employees-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 10. INVESTOINNIT & RAHOITUS -->
+            <section id="tab-investoinnit" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">10. Investoinnit & Rahoitus</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Jokainen investointi vaatii tarkat perustelut, tuottovaatimuksen ja rahoituslähteen hyväksynnän ennen kirjaamista.</p>
+                        </div>
+                        <button onclick="openAddModal('investment-modal')" class="edit-only hidden bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Investointi / Rahoitus</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Pvm</th>
+                                    <th>Hankinnan kohde / Hanke</th>
+                                    <th>Tyyppi</th>
+                                    <th>Rahoituslähde</th>
+                                    <th class="text-right">Summa (€)</th>
+                                    <th>Perustelut, Tuotto & Takaisinmaksuaika</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="investments-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 11. RAPORTIT, TASE & SUUNNITELMAT -->
+            <section id="tab-raportit" class="tab-content hidden space-y-6">
+                <!-- Toimintasuunnitelmat (Mainonta ja muut hankkeet) -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="compass" class="w-5 h-5 text-purple-400"></i> Toiminta- ja Mainossuunnitelmat</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Suunnittele ja kirjaa ylös markkinointikampanjat, mainonta, budjetit ja strategiset tavoitteet.</p>
+                        </div>
+                        <button onclick="openAddModal('plan-modal')" class="edit-only hidden bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Suunnitelma</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Ajankohta</th>
+                                    <th>Aihe / Kampanja</th>
+                                    <th>Kategoria</th>
+                                    <th>Miksi & Miten (Kuvaus)</th>
+                                    <th class="text-right">Arvioitu Budjetti (€)</th>
+                                    <th>Tila</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="plans-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Työvahingot -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Työtapaturmat & Vahinkoasiat</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Työtapaturmat (missä, milloin, miksi, miten ja korvattava summa).</p>
+                        </div>
+                        <button onclick="openAddModal('accident-modal')" class="edit-only hidden bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Työvahinko</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Pvm & Klo</th>
+                                    <th>Työntekijä</th>
+                                    <th>Missä / Sijainti</th>
+                                    <th>Miten & Miksi (Kuvaus)</th>
+                                    <th class="text-right">Korvattava summa (€)</th>
+                                    <th>Vakavuus</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accidents-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 12. ASIAKKAAT -->
+            <section id="tab-asiakkaat" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white">Asiakasrekisteri & Sopimukset (Aakkosjärjestys)</h3>
+                        <button onclick="openAddModal('customer-modal')" class="edit-only hidden bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Asiakas</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Yritys / Nimi</th><th>Y-tunnus</th><th class="text-right">Sopimus (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="customers-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 13. MYYNTIPUTKI & CRM -->
+            <section id="tab-crm" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">13. Yksityisasiakkaat & CRM - Myyntiputki (Aakkosjärjestys)</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Kaikki yksityisasiakkaiden tarkat tiedot järjestettynä aakkosjärjestykseen sukunimen mukaan.</p>
+                        </div>
+                        <button onclick="openAddModal('crm-modal')" class="edit-only hidden bg-violet-600 hover:bg-violet-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Yksityisasiakas CRM</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Nimi</th>
+                                    <th>Henkilötunnus</th>
+                                    <th>Yhteystiedot (Puh / S-posti)</th>
+                                    <th>Osoite</th>
+                                    <th>Lemmikit & Toiveet</th>
+                                    <th>Muistiinpanot</th>
+                                    <th>Vaihe</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crm-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 14. DOKUMENTIT & KUITIT -->
+            <section id="tab-dokumentit" class="tab-content hidden space-y-6">
+                <!-- Tiedostot & Dokumentit -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="folder-open" class="w-5 h-5 text-yellow-400"></i> Dokumentit & Tiedostot (Aakkosjärjestys)</h3>
+                        <button onclick="openAddModal('document-modal')" class="edit-only hidden bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tiedosto</button>
+                    </div>
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                            <tr><th class="py-2">Tiedoston nimi</th><th>Tyyppi</th><th>Päivämäärä</th><th class="text-center">Avaa</th><th class="text-center edit-only hidden">Poista</th></tr>
+                        </thead>
+                        <tbody id="documents-tbody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+
+                <!-- UUSI: KUITIT (MYYNTI & OSTOKUITIT) -->
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5 text-amber-400"></i> Kuitit (Myynti & Ostokuitit)</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Hallinnoi myynti- ja ostokuitteja viivakoodeineen, ALV-tietoineen ja osapuolineen.</p>
+                        </div>
+                        <button onclick="openAddModal('receipt-modal')" class="edit-only hidden bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Kuitti</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Tyyppi & Pvm</th>
+                                    <th>Kuitti # / Viivakoodi</th>
+                                    <th>Osapuolet (Myyjä / Ostaja / Y-tunnus)</th>
+                                    <th>Tuotteet / Kuvaus</th>
+                                    <th class="text-right">Hinta, Alennus & ALV</th>
+                                    <th class="text-right">Yhteissumma (€)</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receipts-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 16. TULEVAT TYÖT -->
+            <section id="tab-tyot" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-base font-bold text-white">16. Tulevat Työt & Muistutukset</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Syötä tulevat työkohteet ja lähetä automaattinen sähköpostimuistutus.</p>
+                        </div>
+                        <button onclick="openAddModal('job-modal')" class="edit-only hidden bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tuleva Työ</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-slate-400 border-b border-slate-700 uppercase">
+                                <tr>
+                                    <th class="py-2">Työ</th>
+                                    <th>Asiakas</th>
+                                    <th>Osoite</th>
+                                    <th>Aika & Klo</th>
+                                    <th>Tekijä</th>
+                                    <th>Sähköposti</th>
+                                    <th class="text-center">Muistutus</th>
+                                    <th class="text-center edit-only hidden">Poista</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobs-tbody" class="divide-y divide-slate-700/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 17. KALENTERI & TAPAHTUMAT -->
+            <section id="tab-kalenteri" class="tab-content hidden space-y-6">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6 shadow-lg space-y-6">
+                    <!-- Kalenterin ohjauspalkki -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/60 border border-slate-700/50 p-4 rounded-xl">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-400"><i data-lucide="calendar-days" class="w-6 h-6"></i></div>
+                            <div>
+                                <h3 id="calendar-month-year-title" class="text-lg font-black text-white">Kuukausi Vuosi</h3>
+                                <p class="text-xs text-slate-400">Paina tapahtumaa avataksesi, muokataksesi tai poistaaksesi sen.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openAddModal('calendar-event-modal')" class="edit-only hidden px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Lisää kalenteritapahtuma
+                            </button>
+                            <button onclick="changeCalendarMonth(-1)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200">Edellinen</button>
+                            <button onclick="resetCalendarToCurrentMonth()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs font-semibold text-white">Tämä kuukausi</button>
+                            <button onclick="changeCalendarMonth(1)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200">Seuraava</button>
+                        </div>
+                    </div>
+
+                    <!-- Viikonpäivät -->
+                    <div class="grid grid-cols-7 gap-2 text-center font-bold text-xs text-slate-400 uppercase border-b border-slate-700 pb-2">
+                        <div>Maanantai</div><div>Tiistai</div><div>Keskiviikko</div><div>Torstai</div><div>Perjantai</div><div>Lauantai</div><div>Sunnuntai</div>
+                    </div>
+
+                    <!-- Päivien ruudukko -->
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2">
+                        <!-- Generoidaan dynaamisesti -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Muu peruspohja -->
+            <section id="tab-asetukset" class="tab-content hidden space-y-6"><div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg"><h3 class="text-base font-bold text-white">15. Asetukset</h3></div></section>
+        </div>
+    </main>
+
+    <!-- MODALIT -->
+
+    <!-- KUITIN LISÄYSMODAALI -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto custom-scroll">
+            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5 text-amber-400"></i> Uusi Kuitti</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Kuittityyppi *:</label>
+                    <select id="rcpt-type" onchange="toggleReceiptFields()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-bold">
+                        <option value="Myyntikuitti">Myyntikuitti (Asiakkaalle)</option>
+                        <option value="Ostokuitti">Ostokuitti (Toimittajalta)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Päivämäärä (Pvm) *:</label>
+                        <input type="date" id="rcpt-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1" id="rcpt-num-label">Kuitin numero *:</label>
+                        <input type="text" id="rcpt-number" placeholder="Esim. K-10023" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+
+                <!-- Ostokuitille viivakoodi -->
+                <div id="barcode-field-container" class="hidden">
+                    <label class="text-[10px] text-slate-400 block mb-1">Viivakoodin numero (EAN/UPC/Ostokuitti) *:</label>
+                    <input type="text" id="rcpt-barcode" placeholder="Esim. 6410000123456" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-mono">
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Tuotteet / Palvelut (Kuvaus) *:</label>
+                    <textarea id="rcpt-products" rows="2" placeholder="Listaa tuotteet, kpl jne..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></textarea>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Hinta (€):</label>
+                        <input type="number" step="0.01" id="rcpt-price" oninput="calculateReceiptTotal()" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Alennus (%):</label>
+                        <input type="number" step="0.1" id="rcpt-discount" oninput="calculateReceiptTotal()" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">ALV (%):</label>
+                        <select id="rcpt-vat" onchange="calculateReceiptTotal()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                            <option value="25.5">25.5% (Yleinen 2024+)</option>
+                            <option value="24">24%</option>
+                            <option value="14">14%</option>
+                            <option value="10">10%</option>
+                            <option value="0">0% (Veroton)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1 font-bold text-amber-400">Yhteissumma (€) *:</label>
+                    <input type="number" step="0.01" id="rcpt-total" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-bold text-amber-400 text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Myyjä *:</label>
+                        <input type="text" id="rcpt-seller" placeholder="Myyjäyritys tai henkilö" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Myyjän Y-tunnus *:</label>
+                        <input type="text" id="rcpt-ytunnus" placeholder="1234567-8" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Ostaja *:</label>
+                    <input type="text" id="rcpt-buyer" placeholder="Ostajan nimi / yritys" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeModal('receipt-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveReceipt()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold">Tallenna Kuitti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kalenteritapahtuman Muokkaus / Lisäysmodaali -->
+    <div id="calendar-event-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 id="cal-modal-title" class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="calendar-plus" class="w-5 h-5 text-cyan-400"></i> Kalenteritapahtuma</h3>
+            <input type="hidden" id="cal-event-edit-id">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Päivämäärä *:</label>
+                    <input type="date" id="cal-event-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Tapahtuman nimi / Aihe *:</label>
+                    <input type="text" id="cal-event-title" placeholder="Esim. Asiakastapaaminen / Palaveri" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Kellonaika:</label>
+                    <input type="time" id="cal-event-time" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Kategoria:</label>
+                    <select id="cal-event-category" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                        <option value="Tapaaminen">Tapaaminen</option>
+                        <option value="Muistutus">Muistutus</option>
+                        <option value="Muu merkintä">Muu merkintä</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+                <button id="cal-delete-btn" onclick="deleteCalendarEventFromModal()" class="px-3 py-2 bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white rounded-xl text-xs font-semibold hidden">Poista tapahtuma</button>
+                <div class="flex space-x-2 ml-auto">
+                    <button onclick="closeModal('calendar-event-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                    <button onclick="saveCalendarEvent()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">Tallenna</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suunnitelman Lisäysmodaali -->
+    <div id="plan-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="compass" class="w-5 h-5 text-purple-400"></i> Uusi Toiminta- tai Mainossuunnitelma</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Ajankohta / Tavoitepäivä *:</label>
+                    <input type="date" id="plan-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Aihe / Kampanjan nimi *:</label>
+                    <input type="text" id="plan-title" placeholder="Esim. Kevään Facebook-mainonta & some" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Kategoria *:</label>
+                        <select id="plan-category" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                            <option value="Mainonta & Markkinointi">Mainonta & Markkinointi</option>
+                            <option value="Uusi tuote / palvelu">Uusi tuote / palvelu</option>
+                            <option value="Yrityksen kehitys">Yrityksen kehitys</option>
+                            <option value="Muu strategia">Muu strategia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Arvioitu Budjetti (€):</label>
+                        <input type="number" step="0.01" id="plan-budget" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-bold text-purple-300">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Miksi ja miten (Perustelut, tavoite ja kohderyhmä) *:</label>
+                    <textarea id="plan-desc" rows="3" placeholder="Kirjoita yksityiskohtainen suunnitelma, tavoitteet ja kanavat..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Tila:</label>
+                    <select id="plan-status" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                        <option value="Suunnitteilla">Suunnitteilla</option>
+                        <option value="Käsittelyssä / Valmistelussa">Käsittelyssä / Valmistelussa</option>
+                        <option value="Aktiivinen / Käynnissä">Aktiivinen / Käynnissä</option>
+                        <option value="Toteutettu / Valmis">Toteutettu / Valmis</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeModal('plan-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="savePlan()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold">Tallenna Suunnitelma</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Arvioinnin Lisäysmodaali -->
+    <div id="review-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Yrityksen Arviointi</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Päivämäärä *:</label>
+                    <input type="date" id="rev-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Arvioinnin nimi *:</label>
+                    <input type="text" id="rev-name" placeholder="Esim. Asiakastyytyväisyys Q3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Huolellisuus (0-10):</label>
+                        <input type="number" min="0" max="10" id="rev-huolellisuus" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Hinta (0-10):</label>
+                        <input type="number" min="0" max="10" id="rev-hinta" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Tyytyväisyys (0-10):</label>
+                        <input type="number" min="0" max="10" id="rev-tyytyvaisyys" value="10" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Sanallinen palaute (vapaaehtoinen):</label>
+                    <textarea id="rev-feedback" rows="2" placeholder="Kirjoita sanallinen palaute..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('review-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveReview()" class="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs">Tallenna Arvio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Työvahingon Modaali -->
+    <div id="accident-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto custom-scroll">
+            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="alert-triangle" class="w-5 h-5 text-orange-400"></i> Lisää Työvahinko & Korvaustiedot</h3>
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Päivämäärä (Milloin) *:</label>
+                        <input type="date" id="acc-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Kellonaika *:</label>
+                        <input type="time" id="acc-time" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Työntekijä *:</label>
+                    <input type="text" id="acc-worker" placeholder="Työntekijän nimi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Missä tapahtui (Sijainti / Osoite) *:</label>
+                    <input type="text" id="acc-location" placeholder="Esim. Työmaa / Toimisto / Asiakkaan kohde" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Miten ja Miksi tapahtui (Tarkka kuvaus ja syy) *:</label>
+                    <textarea id="acc-desc" rows="3" placeholder="Kerro miten tilanne eteni ja miksi vahinko sattui..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1 text-emerald-400 font-bold">Paljonko pitää korvata (€) *:</label>
+                        <input type="number" step="0.01" id="acc-amount" placeholder="0.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white font-bold text-emerald-400">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Vakavuus:</label>
+                        <select id="acc-severity" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                            <option value="Lievä / Ei sairauspoissaoloa">Lievä / Ei poissaoloa</option>
+                            <option value="Lieviä vammoja / Lyhyt poissaolo">Lieviä vammoja / Lyhyt poissaolo</option>
+                            <option value="Vakava työtapaturma">Vakava työtapaturma</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeModal('accident-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveAccident()" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-semibold">Tallenna Vahinko</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budjettikohteen Lisäysmodaali -->
+    <div id="custom-budget-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Lisää Budjettikohde</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="cb-name" placeholder="Kohteen nimi / Kategoria" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="cb-desc" placeholder="Kuvaus" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="number" step="0.01" id="cb-amount" placeholder="Budjetoitu summa (€)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('custom-budget-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveCustomBudget()" class="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs">Tallenna</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yksityisasiakas CRM Lisäysmodaali -->
+    <div id="crm-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg space-y-4 max-h-[90vh] overflow-y-auto custom-scroll">
+            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5 text-violet-400"></i> Uusi Yksityisasiakas (CRM)</h3>
+            <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Etunimi *:</label>
+                        <input type="text" id="crm-firstname" placeholder="Esim. Matti" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Sukunimi *:</label>
+                        <input type="text" id="crm-lastname" placeholder="Esim. Meikäläinen" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Henkilötunnus:</label>
+                    <input type="text" id="crm-ssn" placeholder="PPKKVV-XXXX" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Puhelinnumero:</label>
+                        <input type="text" id="crm-phone" placeholder="040 1234567" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Sähköposti:</label>
+                        <input type="email" id="crm-email" placeholder="matti@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Katuosoite:</label>
+                    <input type="text" id="crm-address" placeholder="Esim. Kotikatu 1 A 2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Postinumero:</label>
+                        <input type="text" id="crm-zip" placeholder="00100" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Postitoimipaikka:</label>
+                        <input type="text" id="crm-city" placeholder="Helsinki" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Lemmikit & Erityistoiveet / Tarpeet:</label>
+                    <input type="text" id="crm-pets" placeholder="Esim. Kissa taloudessa, arka koira tms." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Muistiinpanot / Historia:</label>
+                    <textarea id="crm-notes" rows="2" placeholder="Vapaamuistiot asiakkaasta..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Myyntiputki / Asiakkuuden vaihe *:</label>
+                    <select id="crm-stage" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                        <option value="Liidi / Potentiaalinen">Liidi / Potentiaalinen</option>
+                        <option value="Yhteydenotto tehty">Yhteydenotto tehty</option>
+                        <option value="Tarjous lähetetty">Tarjous lähetetty</option>
+                        <option value="Aktiivinen sopimusasiakas">Aktiivinen sopimusasiakas</option>
+                        <option value="Päättynyt / Arkisto">Päättynyt / Arkisto</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeModal('crm-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveCrmCustomer()" class="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-semibold">Tallenna Asiakas</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investointi & Rahoitus -modaali -->
+    <div id="investment-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i> Investointi & Rahoitushakemus</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Päivämäärä *:</label>
+                    <input type="date" id="inv-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Hankinnan kohde / Laite / Hanke *:</label>
+                    <input type="text" id="inv-item" placeholder="Esim. Uusi kaivinkone" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Investointityyppi *:</label>
+                        <select id="inv-type" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                            <option value="Koneet ja laitteet">Koneet ja laitteet</option>
+                            <option value="IT ja ohjelmistot">IT ja ohjelmistot</option>
+                            <option value="Toimitilat">Toimitilat</option>
+                            <option value="Muu pitkäaikainen">Muu pitkäaikainen</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Rahoituslähde *:</label>
+                        <select id="inv-funding" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                            <option value="Pankkilaina">Pankkilaina</option>
+                            <option value="Yrittäjän oma sijoitus">Yrittäjän oma sijoitus</option>
+                            <option value="Ulkopuolinen sijoittaja">Ulkopuolinen sijoittaja</option>
+                            <option value="Yrityksen oma kertynyt kassa">Yrityksen oma kertynyt kassa</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1">Summa (€) *:</label>
+                    <input type="number" step="0.01" id="inv-amount" placeholder="Esim. 15000.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-400 block mb-1 text-cyan-300 font-semibold">Tarkat perustelut ja tuottovaatimus (arvioitu tuotto, tehokkuuden kasvu, riskit ja takaisinmaksuaika) *:</label>
+                    <textarea id="inv-justification" rows="3" placeholder="Kirjoita yksityiskohtaiset perustelut..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeModal('investment-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveInvestment()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold">Hyväksy & Tallenna</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tulevan Työn Lisäysmodaali -->
+    <div id="job-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Lisää Tuleva Työ</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="job-title" placeholder="Mikä työ (esim. Pihan haravointi)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="job-client" placeholder="Kenellä / Asiakas" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="job-address" placeholder="Osoite" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Päivämäärä:</label>
+                        <input type="date" id="job-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">Kellonaika:</label>
+                        <input type="time" id="job-time" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                    </div>
+                </div>
+                <input type="text" id="job-worker" placeholder="Tekijä" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="email" id="job-email" placeholder="Muistutussähköposti" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('job-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button>
+                <button onclick="saveJob()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs">Tallenna Työ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sähköpostin Esikatselu -->
+    <div id="email-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-lg space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="mail" class="w-5 h-5 text-emerald-400"></i> Automaattinen Sähköpostimuistutus</h3>
+            <div class="space-y-3 text-xs bg-slate-900/80 p-4 rounded-xl border border-slate-700/60">
+                <div><span class="text-slate-400">Vastaanottaja:</span> <strong id="email-modal-to" class="text-emerald-400"></strong></div>
+                <div><span class="text-slate-400">Aihe:</span> <strong id="email-modal-subject" class="text-white"></strong></div>
+                <div class="border-t border-slate-700/60 pt-3">
+                    <span class="text-slate-400 block mb-1">Viestin sisältö:</span>
+                    <pre id="email-modal-body" class="whitespace-pre-wrap font-sans text-slate-200 bg-slate-950 p-3 rounded-lg border border-slate-800 leading-relaxed"></pre>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeModal('email-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Sulje</button>
+                <a id="email-modal-send-btn" href="#" target="_blank" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i> Avaa ja Lähetä Sähköposti
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Muut perusmodaalit -->
+    <div id="tx-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Tapahtuma</h3>
+            <div class="space-y-3 text-xs">
+                <input type="date" id="tx-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <select id="tx-type" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"><option value="tulo">Tulo (+)</option><option value="meno">Meno (-)</option></select>
+                <input type="text" id="tx-desc" placeholder="Kuvaus / Nimi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="tx-cat" placeholder="Kategoria" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="number" step="0.01" id="tx-amount" placeholder="Summa (€)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('tx-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveTx()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="budget-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Aseta Vuosibudjetti & Tuloraja (<span class="year-label">2026</span>)</h3>
+            <div class="space-y-3 text-xs">
+                <div><label class="text-[10px] text-slate-400 block mb-1">Tavoitetulot (€):</label><input type="number" step="0.01" id="budget-target-input" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></div>
+                <div><label class="text-[10px] text-slate-400 block mb-1">Maksimimenot (€):</label><input type="number" step="0.01" id="budget-max-input" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"></div>
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('budget-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveBudget()" class="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="tax-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Lisää Tuleva Verotapahtuma</h3>
+            <div class="space-y-3 text-xs">
+                <select id="tax-type-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white"><option value="ALV-ilmoitus & Maksu">ALV-ilmoitus & Maksu</option><option value="Ennakkovero">Ennakkovero</option></select>
+                <input type="text" id="tax-desc" placeholder="Selite" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="date" id="tax-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('tax-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveTaxEvent()" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="customer-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Asiakas</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="cust-name" placeholder="Nimi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="cust-id" placeholder="Y-tunnus" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="number" step="0.01" id="cust-value" placeholder="Sopimuksen arvo (€)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('customer-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveCustomer()" class="px-4 py-2 bg-pink-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="product-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Tuote</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="prod-name" placeholder="Tuotteen nimi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="prod-sku" placeholder="SKU" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="number" step="0.01" id="prod-price" placeholder="Hinta (€)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('product-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveProduct()" class="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="employee-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Työntekijä</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="emp-name" placeholder="Työntekijän nimi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="emp-role" placeholder="Rooli" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('employee-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveEmployee()" class="px-4 py-2 bg-teal-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="document-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Lisää Dokumentti</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="doc-name" placeholder="Tiedoston nimi" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="file" id="doc-file" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-xs">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('document-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveDocument()" class="px-4 py-2 bg-yellow-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="invoice-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Myyntilasku</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="inv-num" placeholder="Lasku #" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="inv-cust" placeholder="Asiakas" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="text" id="inv-reason" placeholder="Syy" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="date" id="inv-startdate" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="date" id="inv-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="number" step="0.01" id="inv-amount" placeholder="Summa (€)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('invoice-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveInvoice()" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <div id="bill-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Uusi Ostolasku</h3>
+            <div class="space-y-3 text-xs">
+                <input type="text" id="bill-supp" placeholder="Toimittaja" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="date" id="bill-date" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                <input type="number" step="0.01" id="bill-amount" placeholder="Summa (€)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+            </div>
+            <div class="flex justify-end space-x-2"><button onclick="closeModal('bill-modal')" class="px-4 py-2 bg-slate-700 text-white rounded-xl text-xs">Peruuta</button><button onclick="saveBill()" class="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs">Tallenna</button></div>
+        </div>
+    </div>
+
+    <!-- SOVELLUSLOGIIKKA JA FIREBASE AUTH -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyArOWbceymkjqIoJQCqsRwJcLgQS37h8Sc",
+            authDomain: "palmutalous.firebaseapp.com",
+            projectId: "palmutalous",
+            storageBucket: "palmutalous.firebasestorage.app",
+            messagingSenderId: "520471130754",
+            appId: "1:520471130754:web:5bff3950a8a50654b87a9b",
+            measurementId: "G-3CY5GBD87Y"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        const SECRET_PIN = "Klv!Plm2013";
+        let isUnlocked = false;
+        let selectedYear = "2026";
+        let currentCalendarDate = new Date();
+
+        let state = {
+            initialBalance: 0,
+            budgets: {
+                "2026": { targetIncome: 0, maxExpense: 0 },
+                "2027": { targetIncome: 0, maxExpense: 0 },
+                "2028": { targetIncome: 0, maxExpense: 0 },
+                "2029": { targetIncome: 0, maxExpense: 0 }
+            },
+            transactions: [],
+            customers: [],
+            crmCustomers: [],
+            products: [],
+            invoices: [],
+            bills: [],
+            employees: [],
+            documents: [],
+            receipts: [],
+            taxEvents: [],
+            jobs: [],
+            investments: [],
+            reviews: [],
+            accidents: [],
+            customBudgets: [],
+            plans: [],
+            calendarEvents: []
+        };
+
+        let incomeChartInstance = null;
+        let customerChartInstance = null;
+
+        // Autentikoinnin tila ja tietojen lataus käyttäjäkohtaisesti
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            const authModal = document.getElementById('auth-modal');
+            const userEmailDisplay = document.getElementById('user-display-email');
+
+            if (user) {
+                authModal.classList.add('hidden');
+                userEmailDisplay.innerText = user.email || user.phoneNumber || "Kirjautunut";
+                
+                // Kuunnellaan käyttäjän omaa Firestore-dokumenttia (users/{uid})
+                db.collection("users").doc(user.uid).onSnapshot((docSnap) => {
+                    if (docSnap.exists) {
+                        const data = docSnap.data();
+                        state = { ...state, ...data };
+                    } else {
+                        // Alustetaan uusi dokumentti jos tyhjä
+                        syncToFirebase();
+                    }
+                    render();
+                }, (error) => {
+                    console.error("Firebase virhe:", error);
+                });
+            } else {
+                authModal.classList.remove('hidden');
+                userEmailDisplay.innerText = "Ei kirjauduttu";
+            }
+        });
+
+        // Autentikointifunktiot
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(e => alert("Google-kirjautumisvirhe: " + e.message));
+        }
+
+        function loginWithEmail() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            auth.signInWithEmailAndPassword(email, pass).catch(e => alert("Kirjautumisvirhe: " + e.message));
+        }
+
+        function registerWithEmail() {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-password').value;
+            auth.createUserWithEmailAndPassword(email, pass).catch(e => alert("Rekisteröitymisvirhe: " + e.message));
+        }
+
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { 'size': 'invisible' });
+        function loginWithPhone() {
+            const phone = document.getElementById('auth-phone').value;
+            auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+                .then(res => {
+                    const code = prompt("Syötä tekstiviestinä saamasi koodi:");
+                    return res.confirm(code);
+                })
+                .catch(e => alert("Puhelinkirjautumisvirhe: " + e.message));
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        function syncToFirebase() {
+            if (!isUnlocked || !currentUser) return;
+            db.collection("users").doc(currentUser.uid).set(state)
+              .catch((e) => console.error("Tallennusvirhe:", e));
+        }
+
+        function changeGlobalYear(year) {
+            selectedYear = year;
+            document.querySelectorAll('.year-label').forEach(el => {
+                el.innerText = year === 'kaikki' ? 'Kaikki vuodet' : year;
+            });
+            render();
+        }
+
+        function updateCompanyAgeClock() {
+            const startDate = new Date(2026, 7, 12, 9, 58, 0);
+            const now = new Date();
+            let diff = now - startDate;
+            if (diff < 0) diff = 0;
+
+            const seconds = Math.floor((diff / 1000) % 60);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            
+            let years = now.getFullYear() - startDate.getFullYear();
+            let months = now.getMonth() - startDate.getMonth();
+            let days = now.getDate() - startDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            const elYears = document.getElementById('age-years');
+            const elMonths = document.getElementById('age-months');
+            const elDays = document.getElementById('age-days');
+            const elHours = document.getElementById('age-hours');
+            const elMinutes = document.getElementById('age-minutes');
+            const elSeconds = document.getElementById('age-seconds');
+
+            if (elYears) elYears.innerText = years;
+            if (elMonths) elMonths.innerText = months;
+            if (elDays) elDays.innerText = days;
+            if (elHours) elHours.innerText = hours;
+            if (elMinutes) elMinutes.innerText = minutes;
+            if (elSeconds) elSeconds.innerText = seconds;
+        }
+
+        setInterval(updateCompanyAgeClock, 1000);
+        updateCompanyAgeClock();
+
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const activeTab = document.getElementById(`tab-${tabKey}`);
+            if (activeTab) activeTab.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:bg-slate-900 hover:text-white transition-all";
+            });
+
+            const activeBtn = document.getElementById(`nav-${tabKey}`);
+            if (activeBtn) {
+                activeBtn.className = "nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all bg-blue-600 text-white shadow-md shadow-blue-600/20";
+                document.getElementById('current-tab-title').innerText = activeBtn.querySelector('span').innerText;
+            }
+
+            if (tabKey === 'kalenteri') {
+                renderCalendar();
+            }
+        }
+
+        function toggleEditMode() {
+            if (!isUnlocked) {
+                let pin = prompt("Syötä muokkauskoodi:");
+                if (pin === SECRET_PIN) {
+                    isUnlocked = true;
+                    updateLockUI();
+                } else if (pin !== null) alert("Väärä koodi!");
+            } else {
+                isUnlocked = false;
+                updateLockUI();
+            }
+        }
+
+        function updateLockUI() {
+            const badge = document.getElementById('status-badge');
+            const btnText = document.getElementById('lock-btn-text');
+            if (isUnlocked) {
+                badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1";
+                badge.innerHTML = '<i data-lucide="unlock" class="w-3 h-3"></i> Muokkaustila';
+                btnText.innerText = "Lukitse";
+                document.querySelectorAll('.edit-only').forEach(el => el.classList.remove('hidden'));
+            } else {
+                badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1";
+                badge.innerHTML = '<i data-lucide="lock" class="w-3 h-3"></i> Vain luku';
+                btnText.innerText = "Avaa muokkaustila";
+                document.querySelectorAll('.edit-only').forEach(el => el.classList.add('hidden'));
+            }
+            lucide.createIcons();
+        }
+
+        function openAddModal(id) { 
+            if (!isUnlocked) return;
+            if (id === 'calendar-event-modal') {
+                document.getElementById('cal-modal-title').innerHTML = '<i data-lucide="calendar-plus" class="w-5 h-5 text-cyan-400"></i> Uusi Kalenteritapahtuma';
+                document.getElementById('cal-event-edit-id').value = '';
+                document.getElementById('cal-event-date').value = '';
+                document.getElementById('cal-event-title').value = '';
+                document.getElementById('cal-event-time').value = '';
+                document.getElementById('cal-delete-btn').classList.add('hidden');
+            }
+            if (id === 'receipt-modal') {
+                toggleReceiptFields();
+            }
+            if (id === 'budget-modal') {
+                if (!state.budgets) state.budgets = {};
+                if (!state.budgets[selectedYear]) state.budgets[selectedYear] = { targetIncome: 0, maxExpense: 0 };
+                document.getElementById('budget-target-input').value = state.budgets[selectedYear].targetIncome || '';
+                document.getElementById('budget-max-input').value = state.budgets[selectedYear].maxExpense || '';
+            }
+            document.getElementById(id).classList.remove('hidden'); 
+            lucide.createIcons();
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        // Kuittien apufunktiot
+        function toggleReceiptFields() {
+            const type = document.getElementById('rcpt-type').value;
+            const barcodeContainer = document.getElementById('barcode-field-container');
+            const numLabel = document.getElementById('rcpt-num-label');
+            
+            if (type === 'Ostokuitti') {
+                barcodeContainer.classList.remove('hidden');
+                numLabel.innerText = "Ostokuitin viite / numero *:";
+            } else {
+                barcodeContainer.classList.add('hidden');
+                numLabel.innerText = "Kuitin numero *:";
+            }
+        }
+
+        function calculateReceiptTotal() {
+            const price = parseFloat(document.getElementById('rcpt-price').value) || 0;
+            const discount = parseFloat(document.getElementById('rcpt-discount').value) || 0;
+            const vat = parseFloat(document.getElementById('rcpt-vat').value) || 0;
+
+            let afterDiscount = price * (1 - (discount / 100));
+            let total = afterDiscount * (1 + (vat / 100));
+
+            if (price > 0) {
+                document.getElementById('rcpt-total').value = total.toFixed(2);
+            }
+        }
+
+        function saveReceipt() {
+            if (!isUnlocked) return;
+            const type = document.getElementById('rcpt-type').value;
+            const date = document.getElementById('rcpt-date').value;
+            const number = document.getElementById('rcpt-number').value.trim();
+            const barcode = document.getElementById('rcpt-barcode').value.trim() || '-';
+            const products = document.getElementById('rcpt-products').value.trim();
+            const price = parseFloat(document.getElementById('rcpt-price').value) || 0;
+            const discount = parseFloat(document.getElementById('rcpt-discount').value) || 0;
+            const vat = parseFloat(document.getElementById('rcpt-vat').value) || 0;
+            const total = parseFloat(document.getElementById('rcpt-total').value) || 0;
+            const seller = document.getElementById('rcpt-seller').value.trim();
+            const ytunnus = document.getElementById('rcpt-ytunnus').value.trim();
+            const buyer = document.getElementById('rcpt-buyer').value.trim();
+
+            if (!date || !number || !products || total <= 0 || !seller || !ytunnus || !buyer) {
+                return alert("Virhe: Päivämäärä, kuitin numero, tuotteet, yhteissumma, myyjä, Y-tunnus ja ostaja ovat pakollisia kenttiä!");
+            }
+
+            if (type === 'Ostokuitti' && barcode === '-') {
+                return alert("Virhe: Ostokuitissa tulee olla viivakoodin numero!");
+            }
+
+            if (!state.receipts) state.receipts = [];
+            state.receipts.push({
+                id: Date.now(), type, date, number, barcode, products, price, discount, vat, total, seller, ytunnus, buyer
+            });
+
+            closeModal('receipt-modal');
+
+            document.getElementById('rcpt-date').value = '';
+            document.getElementById('rcpt-number').value = '';
+            document.getElementById('rcpt-barcode').value = '';
+            document.getElementById('rcpt-products').value = '';
+            document.getElementById('rcpt-price').value = '';
+            document.getElementById('rcpt-discount').value = '';
+            document.getElementById('rcpt-total').value = '';
+            document.getElementById('rcpt-seller').value = '';
+            document.getElementById('rcpt-ytunnus').value = '';
+            document.getElementById('rcpt-buyer').value = '';
+
+            syncToFirebase();
+            renderReceipts();
+        }
+
+        function deleteReceipt(id) {
+            if (!isUnlocked) return;
+            state.receipts = state.receipts.filter(r => r.id !== id);
+            syncToFirebase();
+            renderReceipts();
+        }
+
+        function renderReceipts() {
+            const tbody = document.getElementById('receipts-tbody');
+            if (!tbody) return;
+            if (!state.receipts || state.receipts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ei tallennettuja kuitteja.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.receipts].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            tbody.innerHTML = sorted.map(r => `
+                <tr class="hover:bg-slate-800/40 align-top">
+                    <td class="py-3">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.type === 'Myyntikuitti' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}">${r.type}</span>
+                        <div class="text-[11px] text-slate-400 font-semibold mt-1">${r.date}</div>
+                    </td>
+                    <td class="py-3">
+                        <span class="font-bold text-white">#${r.number}</span>
+                        ${r.barcode && r.barcode !== '-' ? `<div class="text-[10px] text-amber-400 font-mono mt-0.5">VK: ${r.barcode}</div>` : ''}
+                    </td>
+                    <td class="py-3 text-slate-300">
+                        <div><strong>Myyjä:</strong> ${r.seller} (${r.ytunnus})</div>
+                        <div class="text-slate-400"><strong>Ostaja:</strong> ${r.buyer}</div>
+                    </td>
+                    <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">${r.products}</td>
+                    <td class="py-3 text-right text-slate-300">
+                        <div>${r.price.toFixed(2)} €</div>
+                        <div class="text-[10px] text-slate-400">Ale: ${r.discount}% | ALV: ${r.vat}%</div>
+                    </td>
+                    <td class="py-3 text-right font-black ${r.type === 'Myyntikuitti' ? 'text-emerald-400' : 'text-rose-400'} text-sm">${r.total.toFixed(2)} €</td>
+                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteReceipt(${r.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // Kalenterin apufunktiot
+        function changeCalendarMonth(direction) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        function resetCalendarToCurrentMonth() {
+            currentCalendarDate = new Date();
+            renderCalendar();
+        }
+
+        function openEditCalendarEvent(id, date, title, time, category) {
+            if (!isUnlocked) return;
+            document.getElementById('cal-modal-title').innerHTML = '<i data-lucide="calendar" class="w-5 h-5 text-cyan-400"></i> Muokkaa Kalenteritapahtumaa';
+            document.getElementById('cal-event-edit-id').value = id;
+            document.getElementById('cal-event-date').value = date;
+            document.getElementById('cal-event-title').value = title;
+            document.getElementById('cal-event-time').value = time;
+            document.getElementById('cal-event-category').value = category || 'Tapaaminen';
+            document.getElementById('cal-delete-btn').classList.remove('hidden');
+            document.getElementById('calendar-event-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveCalendarEvent() {
+            if (!isUnlocked) return;
+            const editId = document.getElementById('cal-event-edit-id').value;
+            const date = document.getElementById('cal-event-date').value;
+            const title = document.getElementById('cal-event-title').value.trim();
+            const time = document.getElementById('cal-event-time').value || '';
+            const category = document.getElementById('cal-event-category').value;
+
+            if (!date || !title) {
+                return alert("Päivämäärä ja otsikko ovat pakollisia kenttiä!");
+            }
+
+            if (!state.calendarEvents) state.calendarEvents = [];
+
+            if (editId) {
+                state.calendarEvents = state.calendarEvents.map(ce => {
+                    if (ce.id == editId) {
+                        return { ...ce, date, title, time, category };
+                    }
+                    return ce;
+                });
+            } else {
+                state.calendarEvents.push({ id: Date.now(), date, title, time, category });
+            }
+
+            closeModal('calendar-event-modal');
+            syncToFirebase();
+            renderCalendar();
+        }
+
+        function deleteCalendarEventFromModal() {
+            if (!isUnlocked) return;
+            const editId = document.getElementById('cal-event-edit-id').value;
+            if (!editId) return;
+            if (confirm("Haluatko varmasti poistaa tämän kalenteritapahtuman?")) {
+                state.calendarEvents = state.calendarEvents.filter(ce => ce.id != editId);
+                closeModal('calendar-event-modal');
+                syncToFirebase();
+                renderCalendar();
+            }
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const titleEl = document.getElementById('calendar-month-year-title');
+            if (!grid || !titleEl) return;
+
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const monthNames = ['Tammikuu', 'Helmikuu', 'Maaliskuu', 'Huhtikuu', 'Toukokuu', 'Kesäkuu', 'Heinäkuu', 'Elokuu', 'Syyskuu', 'Lokakuu', 'Marraskuu', 'Joulukuu'];
+            titleEl.innerText = `${monthNames[month]} ${year}`;
+
+            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            const prevMonthDays = new Date(year, month, 0).getDate();
+
+            let html = '';
+
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                let d = prevMonthDays - i;
+                html += `<div class="bg-slate-950/40 border border-slate-800/40 rounded-xl p-2 min-h-[100px] opacity-30 text-slate-500 text-xs"><span>${d}</span></div>`;
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const formattedMonth = String(month + 1).padStart(2, '0');
+                const formattedDay = String(day).padStart(2, '0');
+                const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+                let dayEvents = [];
+
+                (state.calendarEvents || []).forEach(ce => {
+                    if (ce.date === dateStr) {
+                        dayEvents.push({ 
+                            id: ce.id,
+                            type: 'user',
+                            date: ce.date,
+                            title: ce.title,
+                            time: ce.time,
+                            category: ce.category,
+                            text: `${ce.time ? ce.time + ' ' : ''}${ce.title}`, 
+                            color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/30 cursor-pointer' 
+                        });
+                    }
+                });
+
+                (state.transactions || []).forEach(t => {
+                    if (t.date === dateStr) {
+                        dayEvents.push({ type: 'other', text: `${t.type === 'tulo' ? '+' : '-'}${t.amount.toFixed(2)} € (${t.desc})`, color: t.type === 'tulo' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30' });
+                    }
+                });
+
+                (state.jobs || []).forEach(j => {
+                    if (j.date === dateStr) {
+                        dayEvents.push({ type: 'other', text: `Työ: ${j.title} (${j.client})`, color: 'bg-emerald-600/20 text-emerald-300 border-emerald-500/30' });
+                    }
+                });
+
+                (state.taxEvents || []).forEach(te => {
+                    if (te.date === dateStr) {
+                        dayEvents.push({ type: 'other', text: `Vero: ${te.type}`, color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' });
+                    }
+                });
+
+                (state.plans || []).forEach(p => {
+                    if (p.date === dateStr) {
+                        dayEvents.push({ type: 'other', text: `Suunnitelma: ${p.title}`, color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' });
+                    }
+                });
+
+                const today = new Date();
+                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+                html += `
+                    <div class="bg-slate-900/80 border ${isToday ? 'border-blue-500 shadow-lg shadow-blue-500/10' : 'border-slate-800'} rounded-xl p-2 min-h-[110px] flex flex-col justify-between overflow-hidden">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold ${isToday ? 'bg-blue-600 text-white px-1.5 py-0.5 rounded-md' : 'text-slate-300'}">${day}</span>
+                            ${dayEvents.length > 0 ? `<span class="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded-full font-semibold">${dayEvents.length}</span>` : ''}
+                        </div>
+                        <div class="space-y-1 overflow-y-auto max-h-[75px] custom-scroll">
+                            ${dayEvents.map(e => {
+                                if (e.type === 'user' && isUnlocked) {
+                                    return `<div onclick="openEditCalendarEvent(${e.id}, '${e.date}', '${e.title.replace(/'/g, "\\'")}', '${e.time}', '${e.category}')" class="text-[10px] px-1.5 py-0.5 rounded border ${e.color} truncate font-medium transition-all" title="Klikkaa muokataksesi: ${e.text}">✏️ ${e.text}</div>`;
+                                } else {
+                                    return `<div class="text-[10px] px-1.5 py-0.5 rounded border ${e.color} truncate font-medium" title="${e.text}">${e.text}</div>`;
+                                }
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function savePlan() {
+            if (!isUnlocked) return;
+            const date = document.getElementById('plan-date').value;
+            const title = document.getElementById('plan-title').value.trim();
+            const category = document.getElementById('plan-category').value;
+            const budget = parseFloat(document.getElementById('plan-budget').value) || 0;
+            const desc = document.getElementById('plan-desc').value.trim();
+            const status = document.getElementById('plan-status').value;
+
+            if (!date || !title || !desc) {
+                return alert("Virhe: Ajankohta, aihe ja kuvaus ovat pakollisia kenttiä!");
+            }
+
+            if (!state.plans) state.plans = [];
+            state.plans.push({ id: Date.now(), date, title, category, budget, desc, status });
+            closeModal('plan-modal');
+
+            document.getElementById('plan-date').value = '';
+            document.getElementById('plan-title').value = '';
+            document.getElementById('plan-budget').value = '';
+            document.getElementById('plan-desc').value = '';
+
+            syncToFirebase();
+            renderPlans();
+        }
+
+        function deletePlan(id) {
+            if (!isUnlocked) return;
+            state.plans = state.plans.filter(p => p.id !== id);
+            syncToFirebase();
+            renderPlans();
+        }
+
+        function saveReview() {
+            if (!isUnlocked) return;
+            const date = document.getElementById('rev-date').value || new Date().toISOString().split('T')[0];
+            const name = document.getElementById('rev-name').value.trim();
+            const huolellisuus = parseInt(document.getElementById('rev-huolellisuus').value) || 0;
+            const hinta = parseInt(document.getElementById('rev-hinta').value) || 0;
+            const tyytyvaisyys = parseInt(document.getElementById('rev-tyytyvaisyys').value) || 0;
+            const feedback = document.getElementById('rev-feedback').value.trim() || '-';
+
+            if (!name) return alert("Arvioinnin nimi on pakollinen!");
+
+            if (!state.reviews) state.reviews = [];
+            state.reviews.push({ id: Date.now(), date, name, huolellisuus, hinta, tyytyvaisyys, feedback });
+            closeModal('review-modal');
+
+            document.getElementById('rev-name').value = '';
+            document.getElementById('rev-feedback').value = '';
+
+            syncToFirebase();
+            renderReviews();
+        }
+
+        function deleteReview(id) {
+            if (!isUnlocked) return;
+            state.reviews = state.reviews.filter(r => r.id !== id);
+            syncToFirebase();
+            renderReviews();
+        }
+
+        function saveAccident() {
+            if (!isUnlocked) return;
+            const date = document.getElementById('acc-date').value;
+            const time = document.getElementById('acc-time').value || '00:00';
+            const worker = document.getElementById('acc-worker').value.trim();
+            const location = document.getElementById('acc-location').value.trim();
+            const desc = document.getElementById('acc-desc').value.trim();
+            const amount = parseFloat(document.getElementById('acc-amount').value) || 0;
+            const severity = document.getElementById('acc-severity').value;
+
+            if (!date || !worker || !location || !desc) {
+                return alert("Virhe: Päivämäärä, työntekijä, sijainti (missä) ja kuvaus (miten/miksi) ovat pakollisia kenttiä!");
+            }
+
+            if (!state.accidents) state.accidents = [];
+            state.accidents.push({ id: Date.now(), date, time, worker, location, desc, amount, severity });
+            closeModal('accident-modal');
+
+            document.getElementById('acc-date').value = '';
+            document.getElementById('acc-time').value = '';
+            document.getElementById('acc-worker').value = '';
+            document.getElementById('acc-location').value = '';
+            document.getElementById('acc-desc').value = '';
+            document.getElementById('acc-amount').value = '';
+
+            syncToFirebase();
+            renderAccidents();
+        }
+
+        function deleteAccident(id) {
+            if (!isUnlocked) return;
+            state.accidents = state.accidents.filter(a => a.id !== id);
+            syncToFirebase();
+            renderAccidents();
+        }
+
+        function saveCustomBudget() {
+            if (!isUnlocked) return;
+            const name = document.getElementById('cb-name').value.trim();
+            const desc = document.getElementById('cb-desc').value.trim() || '-';
+            const amount = parseFloat(document.getElementById('cb-amount').value) || 0;
+
+            if (!name || amount <= 0) return alert("Nimi ja summa vaaditaan!");
+
+            if (!state.customBudgets) state.customBudgets = [];
+            state.customBudgets.push({ id: Date.now(), name, desc, amount });
+            closeModal('custom-budget-modal');
+
+            document.getElementById('cb-name').value = '';
+            document.getElementById('cb-desc').value = '';
+            document.getElementById('cb-amount').value = '';
+
+            syncToFirebase();
+            renderCustomBudgets();
+        }
+
+        function deleteCustomBudget(id) {
+            if (!isUnlocked) return;
+            state.customBudgets = state.customBudgets.filter(cb => cb.id !== id);
+            syncToFirebase();
+            renderCustomBudgets();
+        }
+
+        function saveCrmCustomer() {
+            if (!isUnlocked) return;
+            const firstName = document.getElementById('crm-firstname').value.trim();
+            const lastName = document.getElementById('crm-lastname').value.trim();
+            const ssn = document.getElementById('crm-ssn').value.trim() || '-';
+            const phone = document.getElementById('crm-phone').value.trim() || '-';
+            const email = document.getElementById('crm-email').value.trim() || '-';
+            const address = document.getElementById('crm-address').value.trim() || '-';
+            const zip = document.getElementById('crm-zip').value.trim() || '';
+            const city = document.getElementById('crm-city').value.trim() || '';
+            const pets = document.getElementById('crm-pets').value.trim() || '-';
+            const notes = document.getElementById('crm-notes').value.trim() || '-';
+            const stage = document.getElementById('crm-stage').value;
+
+            if (!firstName || !lastName) {
+                return alert("Virhe: Etunimi ja sukunimi ovat pakollisia kenttiä!");
+            }
+
+            if (!state.crmCustomers) state.crmCustomers = [];
+            state.crmCustomers.push({
+                id: Date.now(), firstName, lastName, ssn, phone, email, address, zip, city, pets, notes, stage
+            });
+            closeModal('crm-modal');
+
+            document.getElementById('crm-firstname').value = '';
+            document.getElementById('crm-lastname').value = '';
+            document.getElementById('crm-ssn').value = '';
+            document.getElementById('crm-phone').value = '';
+            document.getElementById('crm-email').value = '';
+            document.getElementById('crm-address').value = '';
+            document.getElementById('crm-zip').value = '';
+            document.getElementById('crm-city').value = '';
+            document.getElementById('crm-pets').value = '';
+            document.getElementById('crm-notes').value = '';
+
+            syncToFirebase();
+            renderCrmCustomers();
+        }
+
+        function deleteCrmCustomer(id) {
+            if (!isUnlocked) return;
+            state.crmCustomers = state.crmCustomers.filter(c => c.id !== id);
+            syncToFirebase();
+            renderCrmCustomers();
+        }
+
+        function saveInvestment() {
+            if (!isUnlocked) return;
+            const date = document.getElementById('inv-date').value;
+            const item = document.getElementById('inv-item').value.trim();
+            const type = document.getElementById('inv-type').value;
+            const funding = document.getElementById('inv-funding').value;
+            const amount = parseFloat(document.getElementById('inv-amount').value) || 0;
+            const justification = document.getElementById('inv-justification').value.trim();
+
+            if (!date || !item || amount <= 0 || !justification) {
+                return alert("Virhe: Kaikki kentät ja tarkat perustelut (tuotto, tehokkuus, riskit, takaisinmaksuaika) ovat pakollisia!");
+            }
+
+            if (!state.investments) state.investments = [];
+            state.investments.push({ id: Date.now(), date, item, type, funding, amount, justification });
+            closeModal('investment-modal');
+            
+            document.getElementById('inv-date').value = '';
+            document.getElementById('inv-item').value = '';
+            document.getElementById('inv-amount').value = '';
+            document.getElementById('inv-justification').value = '';
+
+            syncToFirebase();
+            renderInvestments();
+        }
+
+        function deleteInvestment(id) {
+            if (!isUnlocked) return;
+            state.investments = state.investments.filter(i => i.id !== id);
+            syncToFirebase();
+            renderInvestments();
+        }
+
+        function saveJob() {
+            if (!isUnlocked) return;
+            const title = document.getElementById('job-title').value;
+            const client = document.getElementById('job-client').value || '-';
+            const address = document.getElementById('job-address').value || '-';
+            const date = document.getElementById('job-date').value || '-';
+            const time = document.getElementById('job-time').value || '08:00';
+            const worker = document.getElementById('job-worker').value || '-';
+            const email = document.getElementById('job-email').value || '';
+
+            if (!title) return alert("Työn kuvaus vaaditaan!");
+            if (!state.jobs) state.jobs = [];
+
+            state.jobs.push({ id: Date.now(), title, client, address, date, time, worker, email });
+            closeModal('job-modal');
+            syncToFirebase();
+            renderJobs();
+        }
+
+        function deleteJob(id) {
+            if (!isUnlocked) return;
+            state.jobs = state.jobs.filter(j => j.id !== id);
+            syncToFirebase();
+            renderJobs();
+        }
+
+        function generateEmailReminder(jobId) {
+            const job = (state.jobs || []).find(j => j.id === jobId);
+            if (!job) return;
+
+            const subject = `Muistutus tulevasta työstä: ${job.title} (${job.date} klo ${job.time})`;
+            const body = `Hei ${job.worker}!\n\nTässä on automaattinen muistutus tulevasta työtehtävästäsi:\n\n` +
+                         `📌 Työ: ${job.title}\n` +
+                         `👤 Asiakas: ${job.client}\n` +
+                         `📍 Osoite: ${job.address}\n` +
+                         `⏰ Aloitusaika: ${job.date} klo ${job.time}\n` +
+                         `👷 Tekijä: ${job.worker}\n\n` +
+                         `Olethan ajoissa paikalla. Ystävällisin terveisin,\n` +
+                         `Palmun Palvelut - Talousseuranta`;
+
+            document.getElementById('email-modal-to').innerText = job.email || 'Ei määritelty';
+            document.getElementById('email-modal-subject').innerText = subject;
+            document.getElementById('email-modal-body').innerText = body;
+
+            const mailtoUrl = `mailto:${encodeURIComponent(job.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            document.getElementById('email-modal-send-btn').href = mailtoUrl;
+
+            document.getElementById('email-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function saveBudget() {
+            if (!isUnlocked) return;
+            if (!state.budgets) state.budgets = {};
+            if (!state.budgets[selectedYear]) state.budgets[selectedYear] = {};
+            
+            state.budgets[selectedYear].targetIncome = parseFloat(document.getElementById('budget-target-input').value) || 0;
+            state.budgets[selectedYear].maxExpense = parseFloat(document.getElementById('budget-max-input').value) || 0;
+            
+            closeModal('budget-modal');
+            syncToFirebase();
+            render();
+        }
+
+        function saveTx() {
+            if (!isUnlocked) return;
+            const date = document.getElementById('tx-date').value;
+            const type = document.getElementById('tx-type').value;
+            const desc = document.getElementById('tx-desc').value || 'Kirjaus';
+            const cat = document.getElementById('tx-cat').value || 'Yleinen';
+            const amount = parseFloat(document.getElementById('tx-amount').value) || 0;
+
+            if (amount <= 0) return alert("Summa vaaditaan!");
+            state.transactions.push({ id: Date.now(), date, type, desc, cat, amount });
+            closeModal('tx-modal');
+            syncToFirebase();
+            render();
+        }
+
+        function deleteTx(id) {
+            if (!isUnlocked) return;
+            state.transactions = state.transactions.filter(t => t.id !== id);
+            syncToFirebase();
+            render();
+        }
+
+        function saveTaxEvent() {
+            if (!isUnlocked) return;
+            const type = document.getElementById('tax-type-select').value;
+            const desc = document.getElementById('tax-desc').value || '-';
+            const date = document.getElementById('tax-date').value;
+            if (!date) return alert("Päivämäärä vaaditaan!");
+            if (!state.taxEvents) state.taxEvents = [];
+            state.taxEvents.push({ id: Date.now(), type, desc, date });
+            closeModal('tax-modal');
+            syncToFirebase();
+            renderTaxes();
+        }
+
+        function deleteTaxEvent(id) {
+            if (!isUnlocked) return;
+            state.taxEvents = state.taxEvents.filter(t => t.id !== id);
+            syncToFirebase();
+            renderTaxes();
+        }
+
+        function saveCustomer() {
+            if (!isUnlocked) return;
+            const name = document.getElementById('cust-name').value;
+            const idNumber = document.getElementById('cust-id').value || '-';
+            const value = parseFloat(document.getElementById('cust-value').value) || 0;
+            if (!name) return alert("Nimi vaaditaan!");
+            state.customers.push({ id: Date.now(), name, idNumber, value });
+            closeModal('customer-modal');
+            syncToFirebase();
+            renderCustomers();
+        }
+
+        function deleteCustomer(id) {
+            if (!isUnlocked) return;
+            state.customers = state.customers.filter(c => c.id !== id);
+            syncToFirebase();
+            renderCustomers();
+        }
+
+        function saveProduct() {
+            if (!isUnlocked) return;
+            const name = document.getElementById('prod-name').value;
+            const sku = document.getElementById('prod-sku').value || '-';
+            const price = parseFloat(document.getElementById('prod-price').value) || 0;
+            if (!name) return alert("Nimi vaaditaan!");
+            state.products.push({ id: Date.now(), name, sku, price });
+            closeModal('product-modal');
+            syncToFirebase();
+            renderProducts();
+        }
+
+        function deleteProduct(id) {
+            if (!isUnlocked) return;
+            state.products = state.products.filter(p => p.id !== id);
+            syncToFirebase();
+            renderProducts();
+        }
+
+        function saveEmployee() {
+            if (!isUnlocked) return;
+            const name = document.getElementById('emp-name').value;
+            const role = document.getElementById('emp-role').value || '-';
+            if (!name) return alert("Nimi vaaditaan!");
+            if (!state.employees) state.employees = [];
+            state.employees.push({ id: Date.now(), name, role });
+            closeModal('employee-modal');
+            syncToFirebase();
+            renderEmployees();
+        }
+
+        function deleteEmployee(id) {
+            if (!isUnlocked) return;
+            state.employees = state.employees.filter(e => e.id !== id);
+            syncToFirebase();
+            renderEmployees();
+        }
+
+        function saveDocument() {
+            if (!isUnlocked) return;
+            const name = document.getElementById('doc-name').value;
+            const fileInput = document.getElementById('doc-file');
+            if (!name) return alert("Tiedoston nimi vaaditaan!");
+            if (fileInput.files.length === 0) return alert("Valitse tiedosto!");
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                if (!state.documents) state.documents = [];
+                const today = new Date().toISOString().split('T')[0];
+                state.documents.push({
+                    id: Date.now(), name: name, fileName: file.name,
+                    fileType: file.type || 'Tuntematon', date: today, data: base64Data
+                });
+                closeModal('document-modal');
+                document.getElementById('doc-name').value = '';
+                fileInput.value = '';
+                syncToFirebase();
+                renderDocuments();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function deleteDocument(id) {
+            if (!isUnlocked) return;
+            state.documents = state.documents.filter(d => d.id !== id);
+            syncToFirebase();
+            renderDocuments();
+        }
+
+        function saveInvoice() {
+            if (!isUnlocked) return;
+            const number = document.getElementById('inv-num').value || '1001';
+            const customer = document.getElementById('inv-cust').value || 'Asiakas';
+            const reason = document.getElementById('inv-reason').value || '-';
+            const startDate = document.getElementById('inv-startdate').value || '-';
+            const date = document.getElementById('inv-date').value || '-';
+            const amount = parseFloat(document.getElementById('inv-amount').value) || 0;
+
+            if (amount <= 0) return alert("Summa vaaditaan!");
+            if (!state.invoices) state.invoices = [];
+            state.invoices.push({ id: Date.now(), number, customer, reason, startDate, date, amount });
+            closeModal('invoice-modal');
+            syncToFirebase();
+            renderInvoices();
+        }
+
+        function deleteInvoice(id) {
+            if (!isUnlocked) return;
+            state.invoices = state.invoices.filter(i => i.id !== id);
+            syncToFirebase();
+            renderInvoices();
+        }
+
+        function saveBill() {
+            if (!isUnlocked) return;
+            const supplier = document.getElementById('bill-supp').value || 'Toimittaja';
+            const date = document.getElementById('bill-date').value;
+            const amount = parseFloat(document.getElementById('bill-amount').value) || 0;
+            if (amount <= 0) return alert("Summa vaaditaan!");
+            if (!state.bills) state.bills = [];
+            state.bills.push({ id: Date.now(), supplier, date, amount });
+            closeModal('bill-modal');
+            syncToFirebase();
+            renderBills();
+        }
+
+        function deleteBill(id) {
+            if (!isUnlocked) return;
+            state.bills = state.bills.filter(b => b.id !== id);
+            syncToFirebase();
+            renderBills();
+        }
+
+        function editInitialBalance() {
+            if (!isUnlocked) return;
+            let val = prompt("Syötä alkuperäinen alkupääoma (€):", state.initialBalance);
+            if (val !== null) {
+                state.initialBalance = parseFloat(val) || 0;
+                syncToFirebase();
+                render();
+            }
+        }
+
+        function calculateCumulativeBalance(targetYear) {
+            let runningBalance = state.initialBalance || 0;
+            if (targetYear === 'kaikki') {
+                (state.transactions || []).forEach(t => {
+                    if (t.type === 'tulo') runningBalance += (t.amount || 0);
+                    else runningBalance -= (t.amount || 0);
+                });
+                return runningBalance;
+            }
+
+            const targetYNum = parseInt(targetYear, 10);
+            let currentY = 2026;
+            while (currentY <= targetYNum) {
+                const yearTxs = (state.transactions || []).filter(t => {
+                    if (!t.date) return false;
+                    return parseInt(t.date.split('-')[0], 10) === currentY;
+                });
+                let yearNet = 0;
+                yearTxs.forEach(t => {
+                    if (t.type === 'tulo') yearNet += (t.amount || 0);
+                    else yearNet -= (t.amount || 0);
+                });
+                if (currentY < targetYNum) {
+                    runningBalance += yearNet;
+                } else {
+                    return runningBalance + yearNet;
+                }
+                currentY++;
+            }
+            return runningBalance;
+        }
+
+        function render() {
+            let totalTulot = 0, totalMenot = 0;
+            let incomeCategories = {};
+            let incomeTxTotals = {};
+
+            const filteredTransactions = (state.transactions || []).filter(t => {
+                if (selectedYear === 'kaikki') return true;
+                if (!t.date) return false;
+                const txYear = t.date.split('-')[0];
+                return txYear === selectedYear;
+            });
+
+            filteredTransactions.forEach(t => {
+                if (t.type === 'tulo') {
+                    totalTulot += t.amount;
+                    let cat = t.cat || 'Yleinen';
+                    incomeCategories[cat] = (incomeCategories[cat] || 0) + t.amount;
+                    let descKey = (t.desc || 'Yleinen').trim();
+                    incomeTxTotals[descKey] = (incomeTxTotals[descKey] || 0) + (t.amount || 0);
+                } else {
+                    totalMenot += t.amount;
+                }
+            });
+
+            const netTulos = totalTulot - totalMenot;
+            const kassa = calculateCumulativeBalance(selectedYear);
+
+            document.getElementById('kpi-kassa').innerText = kassa.toFixed(2) + ' €';
+            document.getElementById('kpi-tulot').innerText = totalTulot.toFixed(2) + ' €';
+            document.getElementById('kpi-menot').innerText = totalMenot.toFixed(2) + ' €';
+            document.getElementById('kpi-tulos').innerText = netTulos.toFixed(2) + ' €';
+            document.getElementById('initial-balance-display').innerText = (state.initialBalance || 0).toFixed(2) + ' €';
+
+            let currentTargetIncome = 0;
+            let currentMaxExpense = 0;
+            if (state.budgets && state.budgets[selectedYear]) {
+                currentTargetIncome = state.budgets[selectedYear].targetIncome || 0;
+                currentMaxExpense = state.budgets[selectedYear].maxExpense || 0;
+            } else if (selectedYear === '2026') {
+                currentTargetIncome = state.targetIncome || 0;
+                currentMaxExpense = state.maxExpense || 0;
+            }
+
+            document.getElementById('budget-target-income').innerText = currentTargetIncome.toFixed(2) + ' €';
+            document.getElementById('budget-max-expense').innerText = currentMaxExpense.toFixed(2) + ' €';
+            document.getElementById('budget-actual-income').innerText = totalTulot.toFixed(2) + ' €';
+            document.getElementById('budget-actual-expense').innerText = totalMenot.toFixed(2) + ' €';
+
+            let incomePercent = currentTargetIncome > 0 ? Math.min(Math.round((totalTulot / currentTargetIncome) * 100), 100) : 0;
+            let expensePercent = currentMaxExpense > 0 ? Math.min(Math.round((totalMenot / currentMaxExpense) * 100), 100) : 0;
+
+            document.getElementById('income-progress-text').innerText = incomePercent + '%';
+            document.getElementById('income-progress-bar').style.width = incomePercent + '%';
+            document.getElementById('expense-progress-text').innerText = expensePercent + '%';
+            document.getElementById('expense-progress-bar').style.width = expensePercent + '%';
+
+            let topCatName = "Ei tuloja";
+            let topCatAmount = 0;
+            for (let [cat, amt] of Object.entries(incomeCategories)) {
+                if (amt > topCatAmount) { topCatAmount = amt; topCatName = cat; }
+            }
+            document.getElementById('top-income-category').innerHTML = `
+                <span class="text-white font-medium text-xs">${topCatName}</span>
+                <span class="text-emerald-400 font-bold text-sm">${topCatAmount.toFixed(2)} €</span>
+            `;
+
+            renderIncomeChart(incomeCategories);
+            let sortedIncomeTx = Object.entries(incomeTxTotals).sort((a, b) => b[1] - a[1]);
+            
+            let topCustomersListHtml = sortedIncomeTx.length === 0 ? 
+                `<li class="text-slate-500 text-center py-4">Ei tulokirjauksia</li>` :
+                sortedIncomeTx.slice(0, 5).map(([name, amt], idx) => `
+                    <li class="flex items-center justify-between p-2 rounded-lg bg-slate-900/40 border border-slate-800">
+                        <span class="font-semibold text-white">${idx + 1}. ${name}</span>
+                        <span class="text-emerald-400 font-bold">${amt.toFixed(2)} €</span>
+                    </li>
+                `).join('');
+            document.getElementById('top-customers-list').innerHTML = topCustomersListHtml;
+
+            renderCustomerChart(sortedIncomeTx.slice(0, 5));
+            renderCashflowForecast();
+
+            renderTransactionsTable(filteredTransactions);
+            renderTaxes();
+            renderCustomers();
+            renderCrmCustomers();
+            renderProducts();
+            renderInvoices();
+            renderBills();
+            renderEmployees();
+            renderDocuments();
+            renderReceipts();
+            renderJobs();
+            renderInvestments();
+            renderReviews();
+            renderAccidents();
+            renderCustomBudgets();
+            renderPlans();
+            renderCalendar();
+            lucide.createIcons();
+        }
+
+        function renderCashflowForecast() {
+            let totalIncome12 = 0;
+            let totalExpense12 = 0;
+            let monthCount = 12;
+
+            (state.transactions || []).forEach(t => {
+                if (t.type === 'tulo') totalIncome12 += (t.amount || 0);
+                else totalExpense12 += (t.amount || 0);
+            });
+
+            const avgIncome = totalIncome12 / monthCount;
+            const avgExpense = totalExpense12 / monthCount;
+            const avgNet = avgIncome - avgExpense;
+
+            document.getElementById('cf-avg-income').innerText = avgIncome.toFixed(2) + ' €';
+            document.getElementById('cf-avg-expense').innerText = avgExpense.toFixed(2) + ' €';
+            document.getElementById('cf-avg-net').innerText = avgNet.toFixed(2) + ' €';
+
+            const monthsList = ['Marraskuu 2026', 'Joulukuu 2026', 'Tammikuu 2027', 'Helmikuu 2027', 'Maaliskuu 2027', 'Huhtikuu 2027'];
+            const tbody = document.getElementById('cashflow-forecast-tbody');
+            if (tbody) {
+                tbody.innerHTML = monthsList.map(m => `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="py-2.5 font-bold text-white">${m}</td>
+                        <td class="text-right font-semibold text-emerald-400">${avgIncome.toFixed(2)} €</td>
+                        <td class="text-right font-semibold text-rose-400">${avgExpense.toFixed(2)} €</td>
+                        <td class="text-right font-bold ${avgNet >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${avgNet.toFixed(2)} €</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function renderIncomeChart(categories) {
+            const ctx = document.getElementById('incomeCategoryChart').getContext('2d');
+            const labels = Object.keys(categories);
+            const data = Object.values(categories);
+            if (incomeChartInstance) incomeChartInstance.destroy();
+            incomeChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels.length ? labels : ['Ei dataa'], datasets: [{ data: data.length ? data : [0], backgroundColor: '#10b981', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } }, y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#334155' } } } }
+            });
+        }
+
+        function renderCustomerChart(topTx) {
+            const ctx = document.getElementById('topCustomerChart').getContext('2d');
+            const labels = topTx.map(c => c[0]);
+            const data = topTx.map(c => c[1]);
+            if (customerChartInstance) customerChartInstance.destroy();
+            customerChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: labels.length ? labels : ['Ei dataa'], datasets: [{ data: data.length ? data : [1], backgroundColor: ['#10b981', '#34d399', '#059669', '#6ee7b7', '#047857'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
+            });
+        }
+
+        function renderTransactionsTable(filteredTx) {
+            const tbody = document.getElementById('tx-tbody');
+            if (!filteredTx || filteredTx.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-500">Ei kirjauksia tälle vuodelle.</td></tr>`;
+            } else {
+                const sorted = [...filteredTx].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+                tbody.innerHTML = sorted.map(t => `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="py-2.5 text-slate-300">${t.date || '-'}</td>
+                        <td class="font-medium text-white">${t.desc}</td>
+                        <td class="text-slate-400">${t.cat}</td>
+                        <td><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${t.type === 'tulo' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${t.type.toUpperCase()}</span></td>
+                        <td class="text-right font-bold ${t.type === 'tulo' ? 'text-emerald-400' : 'text-rose-400'}">${t.amount.toFixed(2)} €</td>
+                        <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteTx(${t.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function renderPlans() {
+            const tbody = document.getElementById('plans-tbody');
+            if (!tbody) return;
+            if (!state.plans || state.plans.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ei tallennettuja toiminta- tai mainossuunnitelmia.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.plans].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            tbody.innerHTML = sorted.map(p => `
+                <tr class="hover:bg-slate-800/40 align-top">
+                    <td class="py-3 text-slate-300 font-semibold">${p.date}</td>
+                    <td class="py-3 font-bold text-white">${p.title}</td>
+                    <td class="py-3 text-slate-300">${p.category}</td>
+                    <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">${p.desc}</td>
+                    <td class="py-3 text-right font-bold text-purple-300">${(p.budget || 0).toFixed(2)} €</td>
+                    <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${p.status}</span></td>
+                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deletePlan(${p.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderReviews() {
+            const tbody = document.getElementById('reviews-tbody');
+            if (!tbody) return;
+            if (!state.reviews || state.reviews.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ei arviointeja.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.reviews].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            tbody.innerHTML = sorted.map(r => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 text-slate-300">${r.date}</td>
+                    <td class="font-bold text-white">${r.name}</td>
+                    <td class="text-center text-amber-400 font-bold">${r.huolellisuus} / 10</td>
+                    <td class="text-center text-amber-400 font-bold">${r.hinta} / 10</td>
+                    <td class="text-center text-amber-400 font-bold">${r.tyytyvaisyys} / 10</td>
+                    <td class="text-slate-300 italic">${r.feedback}</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteReview(${r.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAccidents() {
+            const tbody = document.getElementById('accidents-tbody');
+            if (!tbody) return;
+            if (!state.accidents || state.accidents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ei työvahinkoja kirjattu.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.accidents].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            tbody.innerHTML = sorted.map(a => `
+                <tr class="hover:bg-slate-800/40 align-top">
+                    <td class="py-3 text-slate-300">${a.date}<br><span class="text-[10px] text-slate-400">kl. ${a.time || '00:00'}</span></td>
+                    <td class="py-3 font-bold text-white">${a.worker}</td>
+                    <td class="py-3 text-slate-300">${a.location || '-'}</td>
+                    <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">${a.desc}</td>
+                    <td class="py-3 text-right font-bold text-emerald-400">${(a.amount || 0).toFixed(2)} €</td>
+                    <td class="py-3 text-orange-400 font-semibold">${a.severity}</td>
+                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteAccident(${a.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCustomBudgets() {
+            const tbody = document.getElementById('custom-budgets-tbody');
+            if (!tbody) return;
+            if (!state.customBudgets || state.customBudgets.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei lisättyjä budjettikohteita.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = state.customBudgets.map(cb => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-bold text-white">${cb.name}</td>
+                    <td class="text-slate-300">${cb.desc}</td>
+                    <td class="text-right font-bold text-purple-400">${cb.amount.toFixed(2)} €</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteCustomBudget(${cb.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTaxes() {
+            const tbody = document.getElementById('taxes-tbody');
+            if (!tbody) return;
+            if (!state.taxEvents || state.taxEvents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei tulevia verotapahtumia.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.taxEvents].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            tbody.innerHTML = sorted.map(t => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-medium text-indigo-400">${t.type}</td>
+                    <td class="text-slate-300">${t.desc}</td>
+                    <td class="text-slate-400 font-semibold">${t.date}</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteTaxEvent(${t.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCustomers() {
+            const tbody = document.getElementById('customers-tbody');
+            if (!state.customers || state.customers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei asiakkaita.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.customers].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fi'));
+            tbody.innerHTML = sorted.map(c => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-medium text-white">${c.name}</td>
+                    <td class="text-slate-400">${c.idNumber}</td>
+                    <td class="text-right font-bold text-emerald-400">${c.value.toFixed(2)} €</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteCustomer(${c.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCrmCustomers() {
+            const tbody = document.getElementById('crm-tbody');
+            if (!tbody) return;
+            if (!state.crmCustomers || state.crmCustomers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-slate-500">Ei yksityisasiakkaita CRM-rekisterissä.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.crmCustomers].sort((a, b) => {
+                let comp = (a.lastName || '').localeCompare(b.lastName || '', 'fi');
+                if (comp !== 0) return comp;
+                return (a.firstName || '').localeCompare(b.firstName || '', 'fi');
+            });
+            tbody.innerHTML = sorted.map(c => `
+                <tr class="hover:bg-slate-800/40 align-top">
+                    <td class="py-3 font-bold text-white">${c.firstName} ${c.lastName}</td>
+                    <td class="py-3 text-slate-300">${c.ssn}</td>
+                    <td class="py-3 text-slate-300">${c.phone}<br><span class="text-[10px] text-violet-400">${c.email}</span></td>
+                    <td class="py-3 text-slate-300">${c.address}<br><span class="text-[10px] text-slate-400">${c.zip} ${c.city}</span></td>
+                    <td class="py-3 text-slate-300 max-w-xs text-[11px]">${c.pets}</td>
+                    <td class="py-3 text-slate-300 max-w-xs text-[11px]">${c.notes}</td>
+                    <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">${c.stage}</span></td>
+                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteCrmCustomer(${c.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProducts() {
+            const tbody = document.getElementById('products-tbody');
+            if (!state.products || state.products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei tuotteita.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.products].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fi'));
+            tbody.innerHTML = sorted.map(p => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-medium text-white">${p.name}</td>
+                    <td class="text-slate-400">${p.sku}</td>
+                    <td class="text-right font-bold text-emerald-400">${p.price.toFixed(2)} €</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteProduct(${p.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderEmployees() {
+            const tbody = document.getElementById('employees-tbody');
+            if (!tbody) return;
+            if (!state.employees || state.employees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei työntekijöitä.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.employees].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fi'));
+            tbody.innerHTML = sorted.map(e => {
+                const fullName = (e.name || '').trim().toLowerCase();
+                const nameParts = fullName.split(/\s+/);
+                const firstName = nameParts[0] || '';
+
+                let totalSalary = 0;
+                if (firstName && state.transactions) {
+                    state.transactions.forEach(t => {
+                        const txYear = t.date ? t.date.split('-')[0] : '';
+                        if ((selectedYear === 'kaikki' || txYear === selectedYear) && t.type === 'meno' && t.desc) {
+                            const descLower = t.desc.toLowerCase();
+                            if (descLower.includes(firstName) || (fullName && descLower.includes(fullName))) {
+                                totalSalary += parseFloat(t.amount) || 0;
+                            }
+                        }
+                    });
+                }
+                return `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="py-2.5 font-medium text-white">${e.name}</td>
+                        <td class="text-slate-300">${e.role || '-'}</td>
+                        <td class="text-right font-bold text-teal-400">${totalSalary.toFixed(2)} €</td>
+                        <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteEmployee(${e.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderDocuments() {
+            const tbody = document.getElementById('documents-tbody');
+            if (!tbody) return;
+            if (!state.documents || state.documents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500">Ei tiedostoja.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.documents].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fi'));
+            tbody.innerHTML = sorted.map(d => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-medium text-white">${d.name} <span class="text-[10px] text-slate-400 block">${d.fileName}</span></td>
+                    <td class="text-slate-400">${d.fileType.split('/')[1] || d.fileType}</td>
+                    <td class="text-slate-400">${d.date || '-'}</td>
+                    <td class="text-center"><a href="${d.data}" download="${d.fileName}" class="text-yellow-400 hover:underline font-semibold">Avaa / Lataa</a></td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteDocument(${d.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderInvoices() {
+            const tbody = document.getElementById('invoices-tbody');
+            if (!tbody) return;
+            if (!state.invoices || state.invoices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ei laskuja.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.invoices].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            tbody.innerHTML = sorted.map(i => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-medium text-white">#${i.number}</td>
+                    <td class="text-slate-300">${i.customer}</td>
+                    <td class="text-slate-300">${i.reason || '-'}</td>
+                    <td class="text-slate-400">${i.startDate || '-'}</td>
+                    <td class="text-slate-400">${i.date || '-'}</td>
+                    <td class="text-right font-bold text-sky-400">${i.amount.toFixed(2)} €</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteInvoice(${i.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderBills() {
+            const tbody = document.getElementById('bills-tbody');
+            if (!tbody) return;
+            if (!state.bills || state.bills.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei ostolaskuja.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.bills].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            tbody.innerHTML = sorted.map(b => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-medium text-white">${b.supplier}</td>
+                    <td class="text-slate-400">${b.date || '-'}</td>
+                    <td class="text-right font-bold text-rose-400">${b.amount.toFixed(2)} €</td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteBill(${b.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderJobs() {
+            const tbody = document.getElementById('jobs-tbody');
+            if (!tbody) return;
+            if (!state.jobs || state.jobs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-slate-500">Ei tulevia töitä.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.jobs].sort((a, b) => {
+                const dateA = new Date(`${a.date || '1970-01-01'}T${a.time || '00:00'}`);
+                const dateB = new Date(`${b.date || '1970-01-01'}T${b.time || '00:00'}`);
+                return dateA - dateB;
+            });
+            tbody.innerHTML = sorted.map(j => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-2.5 font-bold text-white">${j.title}</td>
+                    <td class="text-slate-300">${j.client}</td>
+                    <td class="text-slate-300">${j.address}</td>
+                    <td class="text-emerald-400 font-semibold">${j.date} klo ${j.time}</td>
+                    <td class="text-teal-300 font-medium">${j.worker}</td>
+                    <td class="text-slate-400">${j.email || '-'}</td>
+                    <td class="text-center">
+                        <button onclick="generateEmailReminder(${j.id})" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-lg border border-emerald-500/30 text-[11px] font-medium flex items-center justify-center gap-1 mx-auto transition-all">
+                            <i data-lucide="mail" class="w-3 h-3"></i> Muistutus
+                        </button>
+                    </td>
+                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteJob(${j.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function renderInvestments() {
+            const tbody = document.getElementById('investments-tbody');
+            if (!tbody) return;
+            if (!state.investments || state.investments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-slate-500">Ei hyväksyttyjä investointeja tai rahoituksia.</td></tr>`;
+                return;
+            }
+            const sorted = [...state.investments].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            tbody.innerHTML = sorted.map(i => `
+                <tr class="hover:bg-slate-800/40 align-top">
+                    <td class="py-3 text-slate-300">${i.date}</td>
+                    <td class="py-3 font-bold text-white">${i.item}</td>
+                    <td class="py-3 text-slate-300">${i.type}</td>
+                    <td class="py-3 text-cyan-400 font-medium">${i.funding}</td>
+                    <td class="py-3 text-right font-bold text-emerald-400">${i.amount.toFixed(2)} €</td>
+                    <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">"${i.justification}"</td>
+                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteInvestment(${i.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
