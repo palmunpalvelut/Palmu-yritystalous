@@ -145,11 +145,7 @@
                         <option value="kaikki">Kaikki vuodet</option>
                     </select>
                 </div>
-                <button onclick="toggleEditMode()" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
-                    <i id="lock-icon" data-lucide="lock" class="w-4 h-4 text-amber-400"></i>
-                    <span id="lock-btn-text">Avaa muokkaustila</span>
-                </button>
-                <button onclick="openAddModal('tx-modal')" class="edit-only hidden flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">
+                <button onclick="openAddModal('tx-modal')" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">
                     <i data-lucide="plus" class="w-4 h-4"></i><span>Uusi kirjaus</span>
                 </button>
             </div>
@@ -165,7 +161,7 @@
                         <h3 class="text-2xl font-black text-white" id="kpi-kassa">0,00 €</h3>
                         <div class="flex items-center justify-between text-[11px] text-slate-400 mt-2">
                             <span>Alkupääoma (v. 2026): <strong id="initial-balance-display" class="text-slate-200">0 €</strong></span>
-                            <button onclick="editInitialBalance()" class="edit-only hidden text-blue-400 hover:underline">Muokkaa</button>
+                            <button onclick="editInitialBalance()" class="text-blue-400 hover:underline">Muokkaa</button>
                         </div>
                     </div>
                     <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-4 shadow-lg">
@@ -243,7 +239,7 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="star" class="w-4 h-4 text-amber-400"></i> Yrityksen arvioinnit (Arvo 0–10)</h3>
-                        <button onclick="openAddModal('review-modal')" class="edit-only hidden bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää arviointi</button>
+                        <button onclick="openAddModal('review-modal')" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää arviointi</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -255,7 +251,7 @@
                                     <th class="text-center">Hinta (0-10)</th>
                                     <th class="text-center">Tyytyväisyys (0-10)</th>
                                     <th>Sanallinen palaute (vapaaehtoinen)</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="reviews-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -269,11 +265,11 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white">Kaikki Kirjaukset (<span class="year-label">2026</span>)</h3>
-                        <button onclick="openAddModal('tx-modal')" class="edit-only hidden bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tapahtuma</button>
+                        <button onclick="openAddModal('tx-modal')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tapahtuma</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Pvm</th><th>Kuvaus</th><th>Kategoria</th><th>Tyyppi</th><th class="text-right">Summa (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Pvm</th><th>Kuvaus</th><th>Kategoria</th><th>Tyyppi</th><th class="text-right">Summa (€)</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="tx-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -288,7 +284,7 @@
                             <h3 class="text-base font-bold text-white">3. Budjetointi, Tavoitteet & Tulorajat (<span class="year-label">2026</span>)</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Aseta vuodelle kuukausitavoite (tuloraja) ja budjetoidut menot.</p>
                         </div>
-                        <button onclick="openAddModal('budget-modal')" class="edit-only hidden bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Aseta / Muokkaa Budjettia (<span class="year-label">2026</span>)</button>
+                        <button onclick="openAddModal('budget-modal')" class="bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Aseta / Muokkaa Budjettia (<span class="year-label">2026</span>)</button>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -332,7 +328,7 @@
                     <div class="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 shadow-lg space-y-4 mt-6">
                         <div class="flex justify-between items-center">
                             <h4 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4 text-purple-400"></i> Budjetoidut kategoriat / hankkeet</h4>
-                            <button onclick="openAddModal('custom-budget-modal')" class="edit-only hidden bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää budjettikohde</button>
+                            <button onclick="openAddModal('custom-budget-modal')" class="bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää budjettikohde</button>
                         </div>
                         <table class="w-full text-left text-xs">
                             <thead class="text-slate-400 border-b border-slate-700 uppercase">
@@ -340,7 +336,7 @@
                                     <th class="py-2">Kohde / Kategoria</th>
                                     <th>Kuvaus</th>
                                     <th class="text-right">Budjetoitu summa (€)</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="custom-budgets-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -396,11 +392,11 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white">Tuotteet & Palvelut (Aakkosjärjestys)</h3>
-                        <button onclick="openAddModal('product-modal')" class="edit-only hidden bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tuote</button>
+                        <button onclick="openAddModal('product-modal')" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tuote</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Nimi</th><th>SKU / Koodi</th><th class="text-right">Hinta (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Nimi</th><th>SKU / Koodi</th><th class="text-right">Hinta (€)</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="products-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -412,11 +408,11 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white">Myyntilaskut & Saatavat</h3>
-                        <button onclick="openAddModal('invoice-modal')" class="edit-only hidden bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Lasku</button>
+                        <button onclick="openAddModal('invoice-modal')" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Lasku</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Lasku #</th><th>Keneltä (Asiakas)</th><th>Syy</th><th>Alkupvm</th><th>Laskupvm</th><th class="text-right">Summa (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Lasku #</th><th>Keneltä (Asiakas)</th><th>Syy</th><th>Alkupvm</th><th>Laskupvm</th><th class="text-right">Summa (€)</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="invoices-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -428,11 +424,11 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white">Ostolaskut & Velat</h3>
-                        <button onclick="openAddModal('bill-modal')" class="edit-only hidden bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Ostolasku</button>
+                        <button onclick="openAddModal('bill-modal')" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Ostolasku</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Toimittaja</th><th>Eräpäivä</th><th class="text-right">Summa (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Toimittaja</th><th>Eräpäivä</th><th class="text-right">Summa (€)</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="bills-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -447,11 +443,11 @@
                             <h3 class="text-base font-bold text-white">Verotus & Tulevat Verotapahtumat</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Seuraa ALV-ilmoituksia, ennakkoveroja ja muita viranomaismääräaikoja.</p>
                         </div>
-                        <button onclick="openAddModal('tax-modal')" class="edit-only hidden bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Verotapahtuma</button>
+                        <button onclick="openAddModal('tax-modal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Verotapahtuma</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Verotyyppi</th><th>Selite</th><th>Eräpäivä</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Verotyyppi</th><th>Selite</th><th>Eräpäivä</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="taxes-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -466,11 +462,11 @@
                             <h3 class="text-base font-bold text-white">Palkat & Henkilöstö (Aakkosjärjestys)</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Kokonaismaksettu palkka haetaan automaattisesti menokirjauksista työntekijän nimen tai etunimen perusteella.</p>
                         </div>
-                        <button onclick="openAddModal('employee-modal')" class="edit-only hidden bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Työntekijä</button>
+                        <button onclick="openAddModal('employee-modal')" class="bg-teal-600 hover:bg-teal-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Työntekijä</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Nimi</th><th>Rooli</th><th class="text-right">Palkat yhteensä (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Nimi</th><th>Rooli</th><th class="text-right">Palkat yhteensä (€)</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="employees-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -485,7 +481,7 @@
                             <h3 class="text-base font-bold text-white">10. Investoinnit & Rahoitus</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Jokainen investointi vaatii tarkat perustelut, tuottovaatimuksen ja rahoituslähteen hyväksynnän ennen kirjaamista.</p>
                         </div>
-                        <button onclick="openAddModal('investment-modal')" class="edit-only hidden bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Investointi / Rahoitus</button>
+                        <button onclick="openAddModal('investment-modal')" class="bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Investointi / Rahoitus</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -497,7 +493,7 @@
                                     <th>Rahoituslähde</th>
                                     <th class="text-right">Summa (€)</th>
                                     <th>Perustelut, Tuotto & Takaisinmaksuaika</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="investments-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -515,7 +511,7 @@
                             <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="compass" class="w-5 h-5 text-purple-400"></i> Toiminta- ja Mainossuunnitelmat</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Suunnittele ja kirjaa ylös markkinointikampanjat, mainonta, budjetit ja strategiset tavoitteet.</p>
                         </div>
-                        <button onclick="openAddModal('plan-modal')" class="edit-only hidden bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Suunnitelma</button>
+                        <button onclick="openAddModal('plan-modal')" class="bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Suunnitelma</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -527,7 +523,7 @@
                                     <th>Miksi & Miten (Kuvaus)</th>
                                     <th class="text-right">Arvioitu Budjetti (€)</th>
                                     <th>Tila</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="plans-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -542,7 +538,7 @@
                             <h3 class="text-base font-bold text-white">Työtapaturmat & Vahinkoasiat</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Työtapaturmat (missä, milloin, miksi, miten ja korvattava summa).</p>
                         </div>
-                        <button onclick="openAddModal('accident-modal')" class="edit-only hidden bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Työvahinko</button>
+                        <button onclick="openAddModal('accident-modal')" class="bg-orange-600 hover:bg-orange-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Työvahinko</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -554,7 +550,7 @@
                                     <th>Miten & Miksi (Kuvaus)</th>
                                     <th class="text-right">Korvattava summa (€)</th>
                                     <th>Vakavuus</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="accidents-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -568,11 +564,11 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white">Asiakasrekisteri & Sopimukset (Aakkosjärjestys)</h3>
-                        <button onclick="openAddModal('customer-modal')" class="edit-only hidden bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Asiakas</button>
+                        <button onclick="openAddModal('customer-modal')" class="bg-pink-600 hover:bg-pink-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Asiakas</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Yritys / Nimi</th><th>Y-tunnus</th><th class="text-right">Sopimus (€)</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Yritys / Nimi</th><th>Y-tunnus</th><th class="text-right">Sopimus (€)</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="customers-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -587,7 +583,7 @@
                             <h3 class="text-base font-bold text-white">13. Yksityisasiakkaat & CRM - Myyntiputki (Aakkosjärjestys)</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Kaikki yksityisasiakkaiden tarkat tiedot järjestettynä aakkosjärjestykseen sukunimen mukaan.</p>
                         </div>
-                        <button onclick="openAddModal('crm-modal')" class="edit-only hidden bg-violet-600 hover:bg-violet-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Yksityisasiakas CRM</button>
+                        <button onclick="openAddModal('crm-modal')" class="bg-violet-600 hover:bg-violet-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Yksityisasiakas CRM</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -600,7 +596,7 @@
                                     <th>Lemmikit & Toiveet</th>
                                     <th>Muistiinpanot</th>
                                     <th>Vaihe</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="crm-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -615,11 +611,11 @@
                 <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-5 shadow-lg space-y-4">
                     <div class="flex justify-between items-center">
                         <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="folder-open" class="w-5 h-5 text-yellow-400"></i> Dokumentit & Tiedostot (Aakkosjärjestys)</h3>
-                        <button onclick="openAddModal('document-modal')" class="edit-only hidden bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tiedosto</button>
+                        <button onclick="openAddModal('document-modal')" class="bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tiedosto</button>
                     </div>
                     <table class="w-full text-left text-xs">
                         <thead class="text-slate-400 border-b border-slate-700 uppercase">
-                            <tr><th class="py-2">Tiedoston nimi</th><th>Tyyppi</th><th>Päivämäärä</th><th class="text-center">Avaa</th><th class="text-center edit-only hidden">Poista</th></tr>
+                            <tr><th class="py-2">Tiedoston nimi</th><th>Tyyppi</th><th>Päivämäärä</th><th class="text-center">Avaa</th><th class="text-center">Poista</th></tr>
                         </thead>
                         <tbody id="documents-tbody" class="divide-y divide-slate-700/50"></tbody>
                     </table>
@@ -632,7 +628,7 @@
                             <h3 class="text-base font-bold text-white flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5 text-amber-400"></i> Kuitit (Myynti & Ostokuitit)</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Hallinnoi myynti- ja ostokuitteja viivakoodeineen, ALV-tietoineen ja osapuolineen.</p>
                         </div>
-                        <button onclick="openAddModal('receipt-modal')" class="edit-only hidden bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Kuitti</button>
+                        <button onclick="openAddModal('receipt-modal')" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Kuitti</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -644,7 +640,7 @@
                                     <th>Tuotteet / Kuvaus</th>
                                     <th class="text-right">Hinta, Alennus & ALV</th>
                                     <th class="text-right">Yhteissumma (€)</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="receipts-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -661,7 +657,7 @@
                             <h3 class="text-base font-bold text-white">16. Tulevat Työt & Muistutukset</h3>
                             <p class="text-[11px] text-slate-400 mt-0.5">Syötä tulevat työkohteet ja lähetä automaattinen sähköpostimuistutus.</p>
                         </div>
-                        <button onclick="openAddModal('job-modal')" class="edit-only hidden bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tuleva Työ</button>
+                        <button onclick="openAddModal('job-modal')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold">+ Lisää Tuleva Työ</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -674,7 +670,7 @@
                                     <th>Tekijä</th>
                                     <th>Sähköposti</th>
                                     <th class="text-center">Muistutus</th>
-                                    <th class="text-center edit-only hidden">Poista</th>
+                                    <th class="text-center">Poista</th>
                                 </tr>
                             </thead>
                             <tbody id="jobs-tbody" class="divide-y divide-slate-700/50"></tbody>
@@ -696,7 +692,7 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button onclick="openAddModal('calendar-event-modal')" class="edit-only hidden px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md">
+                            <button onclick="openAddModal('calendar-event-modal')" class="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md">
                                 <i data-lucide="plus" class="w-4 h-4"></i> Lisää kalenteritapahtuma
                             </button>
                             <button onclick="changeCalendarMonth(-1)" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold text-slate-200">Edellinen</button>
@@ -1293,8 +1289,6 @@
         const db = firebase.firestore();
 
         let currentUser = null;
-        const SECRET_PIN = "Klv!Plm2013";
-        let isUnlocked = false;
         let selectedYear = "2026";
         let currentCalendarDate = new Date();
 
@@ -1391,7 +1385,7 @@
         }
 
         function syncToFirebase() {
-            if (!isUnlocked || !currentUser) return;
+            if (!currentUser) return;
             db.collection("users").doc(currentUser.uid).set(state)
               .catch((e) => console.error("Tallennusvirhe:", e));
         }
@@ -1466,40 +1460,9 @@
             }
         }
 
-        function toggleEditMode() {
-            if (!isUnlocked) {
-                let pin = prompt("Syötä muokkauskoodi:");
-                if (pin === SECRET_PIN) {
-                    isUnlocked = true;
-                    updateLockUI();
-                } else if (pin !== null) alert("Väärä koodi!");
-            } else {
-                isUnlocked = false;
-                updateLockUI();
-            }
-        }
-
-        function updateLockUI() {
-            const badge = document.getElementById('status-badge');
-            const btnText = document.getElementById('lock-btn-text');
-            if (isUnlocked) {
-                badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1";
-                badge.innerHTML = '<i data-lucide="unlock" class="w-3 h-3"></i> Muokkaustila';
-                btnText.innerText = "Lukitse";
-                document.querySelectorAll('.edit-only').forEach(el => el.classList.remove('hidden'));
-            } else {
-                badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1";
-                badge.innerHTML = '<i data-lucide="lock" class="w-3 h-3"></i> Vain luku';
-                btnText.innerText = "Avaa muokkaustila";
-                document.querySelectorAll('.edit-only').forEach(el => el.classList.add('hidden'));
-            }
-            lucide.createIcons();
-        }
-
         function openAddModal(id) { 
-            if (!isUnlocked) return;
             if (id === 'calendar-event-modal') {
-                document.getElementById('cal-modal-title').innerHTML = '<i data-lucide="calendar-plus" class="w-5 h-5 text-cyan-400"></i> Uusi Kalenteritapahtuma';
+                document.getElementById('cal-modal-title').innerHTML = '<i data-lucide="calendar-plus" class="w-5 h-5 text-cyan-400"></i> Kalenteritapahtuma';
                 document.getElementById('cal-event-edit-id').value = '';
                 document.getElementById('cal-event-date').value = '';
                 document.getElementById('cal-event-title').value = '';
@@ -1550,7 +1513,6 @@
         }
 
         function saveReceipt() {
-            if (!isUnlocked) return;
             const type = document.getElementById('rcpt-type').value;
             const date = document.getElementById('rcpt-date').value;
             const number = document.getElementById('rcpt-number').value.trim();
@@ -1595,7 +1557,6 @@
         }
 
         function deleteReceipt(id) {
-            if (!isUnlocked) return;
             state.receipts = state.receipts.filter(r => r.id !== id);
             syncToFirebase();
             renderReceipts();
@@ -1629,7 +1590,7 @@
                         <div class="text-[10px] text-slate-400">Ale: ${r.discount}% | ALV: ${r.vat}%</div>
                     </td>
                     <td class="py-3 text-right font-black ${r.type === 'Myyntikuitti' ? 'text-emerald-400' : 'text-rose-400'} text-sm">${r.total.toFixed(2)} €</td>
-                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteReceipt(${r.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="py-3 text-center"><button onclick="deleteReceipt(${r.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -1646,7 +1607,6 @@
         }
 
         function openEditCalendarEvent(id, date, title, time, category) {
-            if (!isUnlocked) return;
             document.getElementById('cal-modal-title').innerHTML = '<i data-lucide="calendar" class="w-5 h-5 text-cyan-400"></i> Muokkaa Kalenteritapahtumaa';
             document.getElementById('cal-event-edit-id').value = id;
             document.getElementById('cal-event-date').value = date;
@@ -1659,7 +1619,6 @@
         }
 
         function saveCalendarEvent() {
-            if (!isUnlocked) return;
             const editId = document.getElementById('cal-event-edit-id').value;
             const date = document.getElementById('cal-event-date').value;
             const title = document.getElementById('cal-event-title').value.trim();
@@ -1689,7 +1648,6 @@
         }
 
         function deleteCalendarEventFromModal() {
-            if (!isUnlocked) return;
             const editId = document.getElementById('cal-event-edit-id').value;
             if (!editId) return;
             if (confirm("Haluatko varmasti poistaa tämän kalenteritapahtuman?")) {
@@ -1778,7 +1736,7 @@
                         </div>
                         <div class="space-y-1 overflow-y-auto max-h-[75px] custom-scroll">
                             ${dayEvents.map(e => {
-                                if (e.type === 'user' && isUnlocked) {
+                                if (e.type === 'user') {
                                     return `<div onclick="openEditCalendarEvent(${e.id}, '${e.date}', '${e.title.replace(/'/g, "\\'")}', '${e.time}', '${e.category}')" class="text-[10px] px-1.5 py-0.5 rounded border ${e.color} truncate font-medium transition-all" title="Klikkaa muokataksesi: ${e.text}">✏️ ${e.text}</div>`;
                                 } else {
                                     return `<div class="text-[10px] px-1.5 py-0.5 rounded border ${e.color} truncate font-medium" title="${e.text}">${e.text}</div>`;
@@ -1793,7 +1751,6 @@
         }
 
         function savePlan() {
-            if (!isUnlocked) return;
             const date = document.getElementById('plan-date').value;
             const title = document.getElementById('plan-title').value.trim();
             const category = document.getElementById('plan-category').value;
@@ -1819,14 +1776,12 @@
         }
 
         function deletePlan(id) {
-            if (!isUnlocked) return;
             state.plans = state.plans.filter(p => p.id !== id);
             syncToFirebase();
             renderPlans();
         }
 
         function saveReview() {
-            if (!isUnlocked) return;
             const date = document.getElementById('rev-date').value || new Date().toISOString().split('T')[0];
             const name = document.getElementById('rev-name').value.trim();
             const huolellisuus = parseInt(document.getElementById('rev-huolellisuus').value) || 0;
@@ -1848,14 +1803,12 @@
         }
 
         function deleteReview(id) {
-            if (!isUnlocked) return;
             state.reviews = state.reviews.filter(r => r.id !== id);
             syncToFirebase();
             renderReviews();
         }
 
         function saveAccident() {
-            if (!isUnlocked) return;
             const date = document.getElementById('acc-date').value;
             const time = document.getElementById('acc-time').value || '00:00';
             const worker = document.getElementById('acc-worker').value.trim();
@@ -1884,14 +1837,12 @@
         }
 
         function deleteAccident(id) {
-            if (!isUnlocked) return;
             state.accidents = state.accidents.filter(a => a.id !== id);
             syncToFirebase();
             renderAccidents();
         }
 
         function saveCustomBudget() {
-            if (!isUnlocked) return;
             const name = document.getElementById('cb-name').value.trim();
             const desc = document.getElementById('cb-desc').value.trim() || '-';
             const amount = parseFloat(document.getElementById('cb-amount').value) || 0;
@@ -1911,14 +1862,12 @@
         }
 
         function deleteCustomBudget(id) {
-            if (!isUnlocked) return;
             state.customBudgets = state.customBudgets.filter(cb => cb.id !== id);
             syncToFirebase();
             renderCustomBudgets();
         }
 
         function saveCrmCustomer() {
-            if (!isUnlocked) return;
             const firstName = document.getElementById('crm-firstname').value.trim();
             const lastName = document.getElementById('crm-lastname').value.trim();
             const ssn = document.getElementById('crm-ssn').value.trim() || '-';
@@ -1957,14 +1906,12 @@
         }
 
         function deleteCrmCustomer(id) {
-            if (!isUnlocked) return;
             state.crmCustomers = state.crmCustomers.filter(c => c.id !== id);
             syncToFirebase();
             renderCrmCustomers();
         }
 
         function saveInvestment() {
-            if (!isUnlocked) return;
             const date = document.getElementById('inv-date').value;
             const item = document.getElementById('inv-item').value.trim();
             const type = document.getElementById('inv-type').value;
@@ -1990,14 +1937,12 @@
         }
 
         function deleteInvestment(id) {
-            if (!isUnlocked) return;
             state.investments = state.investments.filter(i => i.id !== id);
             syncToFirebase();
             renderInvestments();
         }
 
         function saveJob() {
-            if (!isUnlocked) return;
             const title = document.getElementById('job-title').value;
             const client = document.getElementById('job-client').value || '-';
             const address = document.getElementById('job-address').value || '-';
@@ -2016,7 +1961,6 @@
         }
 
         function deleteJob(id) {
-            if (!isUnlocked) return;
             state.jobs = state.jobs.filter(j => j.id !== id);
             syncToFirebase();
             renderJobs();
@@ -2048,7 +1992,6 @@
         }
 
         function saveBudget() {
-            if (!isUnlocked) return;
             if (!state.budgets) state.budgets = {};
             if (!state.budgets[selectedYear]) state.budgets[selectedYear] = {};
             
@@ -2061,7 +2004,6 @@
         }
 
         function saveTx() {
-            if (!isUnlocked) return;
             const date = document.getElementById('tx-date').value;
             const type = document.getElementById('tx-type').value;
             const desc = document.getElementById('tx-desc').value || 'Kirjaus';
@@ -2076,14 +2018,12 @@
         }
 
         function deleteTx(id) {
-            if (!isUnlocked) return;
             state.transactions = state.transactions.filter(t => t.id !== id);
             syncToFirebase();
             render();
         }
 
         function saveTaxEvent() {
-            if (!isUnlocked) return;
             const type = document.getElementById('tax-type-select').value;
             const desc = document.getElementById('tax-desc').value || '-';
             const date = document.getElementById('tax-date').value;
@@ -2096,14 +2036,12 @@
         }
 
         function deleteTaxEvent(id) {
-            if (!isUnlocked) return;
             state.taxEvents = state.taxEvents.filter(t => t.id !== id);
             syncToFirebase();
             renderTaxes();
         }
 
         function saveCustomer() {
-            if (!isUnlocked) return;
             const name = document.getElementById('cust-name').value;
             const idNumber = document.getElementById('cust-id').value || '-';
             const value = parseFloat(document.getElementById('cust-value').value) || 0;
@@ -2115,14 +2053,12 @@
         }
 
         function deleteCustomer(id) {
-            if (!isUnlocked) return;
             state.customers = state.customers.filter(c => c.id !== id);
             syncToFirebase();
             renderCustomers();
         }
 
         function saveProduct() {
-            if (!isUnlocked) return;
             const name = document.getElementById('prod-name').value;
             const sku = document.getElementById('prod-sku').value || '-';
             const price = parseFloat(document.getElementById('prod-price').value) || 0;
@@ -2134,14 +2070,12 @@
         }
 
         function deleteProduct(id) {
-            if (!isUnlocked) return;
             state.products = state.products.filter(p => p.id !== id);
             syncToFirebase();
             renderProducts();
         }
 
         function saveEmployee() {
-            if (!isUnlocked) return;
             const name = document.getElementById('emp-name').value;
             const role = document.getElementById('emp-role').value || '-';
             if (!name) return alert("Nimi vaaditaan!");
@@ -2153,14 +2087,12 @@
         }
 
         function deleteEmployee(id) {
-            if (!isUnlocked) return;
             state.employees = state.employees.filter(e => e.id !== id);
             syncToFirebase();
             renderEmployees();
         }
 
         function saveDocument() {
-            if (!isUnlocked) return;
             const name = document.getElementById('doc-name').value;
             const fileInput = document.getElementById('doc-file');
             if (!name) return alert("Tiedoston nimi vaaditaan!");
@@ -2187,14 +2119,12 @@
         }
 
         function deleteDocument(id) {
-            if (!isUnlocked) return;
             state.documents = state.documents.filter(d => d.id !== id);
             syncToFirebase();
             renderDocuments();
         }
 
         function saveInvoice() {
-            if (!isUnlocked) return;
             const number = document.getElementById('inv-num').value || '1001';
             const customer = document.getElementById('inv-cust').value || 'Asiakas';
             const reason = document.getElementById('inv-reason').value || '-';
@@ -2211,14 +2141,12 @@
         }
 
         function deleteInvoice(id) {
-            if (!isUnlocked) return;
             state.invoices = state.invoices.filter(i => i.id !== id);
             syncToFirebase();
             renderInvoices();
         }
 
         function saveBill() {
-            if (!isUnlocked) return;
             const supplier = document.getElementById('bill-supp').value || 'Toimittaja';
             const date = document.getElementById('bill-date').value;
             const amount = parseFloat(document.getElementById('bill-amount').value) || 0;
@@ -2231,14 +2159,12 @@
         }
 
         function deleteBill(id) {
-            if (!isUnlocked) return;
             state.bills = state.bills.filter(b => b.id !== id);
             syncToFirebase();
             renderBills();
         }
 
         function editInitialBalance() {
-            if (!isUnlocked) return;
             let val = prompt("Syötä alkuperäinen alkupääoma (€):", state.initialBalance);
             if (val !== null) {
                 state.initialBalance = parseFloat(val) || 0;
@@ -2450,7 +2376,7 @@
                         <td class="text-slate-400">${t.cat}</td>
                         <td><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${t.type === 'tulo' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${t.type.toUpperCase()}</span></td>
                         <td class="text-right font-bold ${t.type === 'tulo' ? 'text-emerald-400' : 'text-rose-400'}">${t.amount.toFixed(2)} €</td>
-                        <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteTx(${t.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                        <td class="text-center"><button onclick="deleteTx(${t.id})" class="text-rose-400 hover:underline">Poista</button></td>
                     </tr>
                 `).join('');
             }
@@ -2472,7 +2398,7 @@
                     <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">${p.desc}</td>
                     <td class="py-3 text-right font-bold text-purple-300">${(p.budget || 0).toFixed(2)} €</td>
                     <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${p.status}</span></td>
-                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deletePlan(${p.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="py-3 text-center"><button onclick="deletePlan(${p.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2493,7 +2419,7 @@
                     <td class="text-center text-amber-400 font-bold">${r.hinta} / 10</td>
                     <td class="text-center text-amber-400 font-bold">${r.tyytyvaisyys} / 10</td>
                     <td class="text-slate-300 italic">${r.feedback}</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteReview(${r.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteReview(${r.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2514,7 +2440,7 @@
                     <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">${a.desc}</td>
                     <td class="py-3 text-right font-bold text-emerald-400">${(a.amount || 0).toFixed(2)} €</td>
                     <td class="py-3 text-orange-400 font-semibold">${a.severity}</td>
-                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteAccident(${a.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="py-3 text-center"><button onclick="deleteAccident(${a.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2531,7 +2457,7 @@
                     <td class="py-2.5 font-bold text-white">${cb.name}</td>
                     <td class="text-slate-300">${cb.desc}</td>
                     <td class="text-right font-bold text-purple-400">${cb.amount.toFixed(2)} €</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteCustomBudget(${cb.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteCustomBudget(${cb.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2549,7 +2475,7 @@
                     <td class="py-2.5 font-medium text-indigo-400">${t.type}</td>
                     <td class="text-slate-300">${t.desc}</td>
                     <td class="text-slate-400 font-semibold">${t.date}</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteTaxEvent(${t.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteTaxEvent(${t.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2566,7 +2492,7 @@
                     <td class="py-2.5 font-medium text-white">${c.name}</td>
                     <td class="text-slate-400">${c.idNumber}</td>
                     <td class="text-right font-bold text-emerald-400">${c.value.toFixed(2)} €</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteCustomer(${c.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteCustomer(${c.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2592,7 +2518,7 @@
                     <td class="py-3 text-slate-300 max-w-xs text-[11px]">${c.pets}</td>
                     <td class="py-3 text-slate-300 max-w-xs text-[11px]">${c.notes}</td>
                     <td class="py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">${c.stage}</span></td>
-                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteCrmCustomer(${c.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="py-3 text-center"><button onclick="deleteCrmCustomer(${c.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2609,7 +2535,7 @@
                     <td class="py-2.5 font-medium text-white">${p.name}</td>
                     <td class="text-slate-400">${p.sku}</td>
                     <td class="text-right font-bold text-emerald-400">${p.price.toFixed(2)} €</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteProduct(${p.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteProduct(${p.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2644,7 +2570,7 @@
                         <td class="py-2.5 font-medium text-white">${e.name}</td>
                         <td class="text-slate-300">${e.role || '-'}</td>
                         <td class="text-right font-bold text-teal-400">${totalSalary.toFixed(2)} €</td>
-                        <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteEmployee(${e.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                        <td class="text-center"><button onclick="deleteEmployee(${e.id})" class="text-rose-400 hover:underline">Poista</button></td>
                     </tr>
                 `;
             }).join('');
@@ -2664,7 +2590,7 @@
                     <td class="text-slate-400">${d.fileType.split('/')[1] || d.fileType}</td>
                     <td class="text-slate-400">${d.date || '-'}</td>
                     <td class="text-center"><a href="${d.data}" download="${d.fileName}" class="text-yellow-400 hover:underline font-semibold">Avaa / Lataa</a></td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteDocument(${d.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteDocument(${d.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2685,7 +2611,7 @@
                     <td class="text-slate-400">${i.startDate || '-'}</td>
                     <td class="text-slate-400">${i.date || '-'}</td>
                     <td class="text-right font-bold text-sky-400">${i.amount.toFixed(2)} €</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteInvoice(${i.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteInvoice(${i.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2703,7 +2629,7 @@
                     <td class="py-2.5 font-medium text-white">${b.supplier}</td>
                     <td class="text-slate-400">${b.date || '-'}</td>
                     <td class="text-right font-bold text-rose-400">${b.amount.toFixed(2)} €</td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteBill(${b.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteBill(${b.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
         }
@@ -2733,7 +2659,7 @@
                             <i data-lucide="mail" class="w-3 h-3"></i> Muistutus
                         </button>
                     </td>
-                    <td class="text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteJob(${j.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="text-center"><button onclick="deleteJob(${j.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
             lucide.createIcons();
@@ -2755,7 +2681,7 @@
                     <td class="py-3 text-cyan-400 font-medium">${i.funding}</td>
                     <td class="py-3 text-right font-bold text-emerald-400">${i.amount.toFixed(2)} €</td>
                     <td class="py-3 text-slate-300 max-w-xs text-[11px] leading-relaxed">"${i.justification}"</td>
-                    <td class="py-3 text-center edit-only ${isUnlocked ? '' : 'hidden'}"><button onclick="deleteInvestment(${i.id})" class="text-rose-400 hover:underline">Poista</button></td>
+                    <td class="py-3 text-center"><button onclick="deleteInvestment(${i.id})" class="text-rose-400 hover:underline">Poista</button></td>
                 </tr>
             `).join('');
             lucide.createIcons();
