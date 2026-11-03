@@ -1292,7 +1292,7 @@
         let selectedYear = "2026";
         let currentCalendarDate = new Date();
 
-        let state = {
+        let defaultState = {
             initialBalance: 0,
             budgets: {
                 "2026": { targetIncome: 0, maxExpense: 0 },
@@ -1319,8 +1319,11 @@
             calendarEvents: []
         };
 
+        let state = JSON.parse(JSON.stringify(defaultState));
+
         let incomeChartInstance = null;
         let customerChartInstance = null;
+        let unsubscribeUserDoc = null;
 
         // Autentikoinnin tila ja tietojen lataus käyttäjäkohtaisesti
         auth.onAuthStateChanged((user) => {
@@ -1328,17 +1331,24 @@
             const authModal = document.getElementById('auth-modal');
             const userEmailDisplay = document.getElementById('user-display-email');
 
+            // Jos edellinen kuuntelija on olemassa, lopetetaan sen kuuntelu turhien ristiriitojen välttämiseksi
+            if (unsubscribeUserDoc) {
+                unsubscribeUserDoc();
+                unsubscribeUserDoc = null;
+            }
+
             if (user) {
                 authModal.classList.add('hidden');
                 userEmailDisplay.innerText = user.email || user.phoneNumber || "Kirjautunut";
                 
-                // Kuunnellaan käyttäjän omaa Firestore-dokumenttia (users/{uid})
-                db.collection("users").doc(user.uid).onSnapshot((docSnap) => {
+                // Kuunnellaan nimenomaan kirjautuneen käyttäjän omaa dokumenttia (users/{uid})
+                unsubscribeUserDoc = db.collection("users").doc(user.uid).onSnapshot((docSnap) => {
                     if (docSnap.exists) {
                         const data = docSnap.data();
-                        state = { ...state, ...data };
+                        state = { ...JSON.parse(JSON.stringify(defaultState)), ...data };
                     } else {
-                        // Alustetaan uusi dokumentti jos tyhjä
+                        // Alustetaan tyhjä tila uudelle käyttäjälle
+                        state = JSON.parse(JSON.stringify(defaultState));
                         syncToFirebase();
                     }
                     render();
@@ -1348,6 +1358,8 @@
             } else {
                 authModal.classList.remove('hidden');
                 userEmailDisplay.innerText = "Ei kirjauduttu";
+                state = JSON.parse(JSON.stringify(defaultState));
+                render();
             }
         });
 
@@ -1385,7 +1397,7 @@
         }
 
         function syncToFirebase() {
-            if (!currentUser) return;
+            if (!currentUser || !currentUser.uid) return;
             db.collection("users").doc(currentUser.uid).set(state)
               .catch((e) => console.error("Tallennusvirhe:", e));
         }
@@ -2623,7 +2635,7 @@
                 tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500">Ei ostolaskuja.</td></tr>`;
                 return;
             }
-            const sorted = [...state.bills].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            const sorted = [...state.bills].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
             tbody.innerHTML = sorted.map(b => `
                 <tr class="hover:bg-slate-800/40">
                     <td class="py-2.5 font-medium text-white">${b.supplier}</td>
